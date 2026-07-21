@@ -100,7 +100,7 @@ dedup jede jen z podkladů nahraných v requestu), jen si nepamatuje historii me
 | Věc | Rozhodnutí | Proč |
 |-----|------------|------|
 | Desetinná místa | Celá čísla bez desetin (`400`), jinak vždy 2 místa (`1290.50`) | SPEC řeší jen celá čísla; dvě místa jsou jednoznačná a konzistentní pro otisk |
-| ASCII-fold | Rozhoduje se za **celý řetězec**, ne za znak | `ó` je i české písmeno, ale akceptační kritérium chce `Gdański Zarząd Dróg` → `Gdanski Zarzad Drog` |
+| ASCII-fold | Foldne se **veškerá diakritika včetně české**, ale **jen u obchodníků** | Rozlišovat „českou" a „cizí" po znacích nešlo (`ó` je obojí); uživatel 2026-07-21 rozhodl diakritiku u obchodníků zrušit. Kategorie, poznámka a texty pravidelných plateb ji mají dál — shodně s přijatým referenčním importem |
 | Rok v textech pravidelných plateb | Zástupné `{rok}` místo literálu `2026` | Pro rok 2026 se vykreslí znak po znaku stejně, ale text nezastará v lednu 2027 |
 | Cizoměnový Revolut řádek | Defaultně `include=false` + upozornění | Do banky jde CZK; ekvivalent, který reálně padl, musí doplnit uživatel |
 | Zápis do D1 při generování | Selhání se loguje, ale XML se vrátí | Audit není důvod shodit celou dávku |

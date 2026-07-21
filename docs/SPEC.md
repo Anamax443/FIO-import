@@ -128,7 +128,8 @@ Sloupce: `Typ` · `Produkt` · `Datum zahájení` · `Datum dokončení` · `Pop
 - Jen Poznámka → `{Poznámka} ze dne {datum} {Obchodník}`
 - Kategorie „dovolená" → **`Dovolená`**.
 - Částka: čárka → tečka, bez mezer/oddělovače tisíců.
-- Obchodník: českou diakritiku ponech; cizí ASCII-foldni (`Żabka`→`Zabka`); dlouhé názvy bankomatu zkrať.
+- Obchodník: **ASCII-foldni veškerou diakritiku** včetně české (`Żabka`→`Zabka`, `Havlíčkova`→`Havlickova`); dlouhé názvy bankomatu zkrať.
+  *(Změna 2026-07-21 na přání uživatele — původně se měla česká diakritika zachovávat. Kategorie, poznámka a texty pravidelných plateb diakritiku dál mají, shodně s přijatým referenčním importem.)*
 
 ---
 

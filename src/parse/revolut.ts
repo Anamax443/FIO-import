@@ -7,15 +7,15 @@
  */
 
 import {
-  buildMsg, colIndex, fingerprint, foldAll, normAmount, parseCsv, parseIsoDate,
+  asciiFold, buildMsg, colIndex, fingerprint, normAmount, parseCsv, parseIsoDate,
 } from '../util.js';
 import type { LineItem } from '../types.js';
 
 const ACCEPTED_TYPES = ['platba kartou', 'vyber z bankomatu', 'card payment', 'atm'];
 const DONE = ['dokonceno', 'completed'];
 
-// foldAll (ne asciiFold) — porovnáváme klíčová slova, takže i české „č/ě" musí padnout.
-const norm = (s: string | undefined) => foldAll(s ?? '').toLowerCase().trim();
+// Porovnáváme klíčová slova, takže „DOKONČENO" musí padnout na „dokonceno".
+const norm = (s: string | undefined) => asciiFold(s ?? '').toLowerCase().trim();
 
 export function parseRevolut(text: string): LineItem[] {
   const rows = parseCsv(text, ',');

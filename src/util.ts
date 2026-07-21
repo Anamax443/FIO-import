@@ -9,9 +9,6 @@ export const CZ_MONTHS = [
   'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec',
 ] as const;
 
-/** Česká diakritika se v obchodnících zachovává, cizí se foldne. */
-const CZ_KEEP = new Set('áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ');
-
 /** Písmena bez rozkladu v NFD — nutná explicitní mapa. */
 const FOLD_SPECIAL: Record<string, string> = {
   ł: 'l', Ł: 'L', đ: 'd', Đ: 'D', ø: 'o', Ø: 'O',
@@ -73,19 +70,17 @@ export function dateFromMessage(msg: string): string | null {
 }
 
 /**
- * Cizí diakritiku foldne na ASCII, českou nechá.
+ * Foldne diakritiku na ASCII — VŠECHNU, včetně české.
  *
- * Rozhoduje se za CELÝ řetězec, ne za jednotlivé znaky: `ó` je i české písmeno,
- * takže „Gdański Zarząd Dróg" musí dát „Gdanski Zarzad Drog" (ne „…Dróg").
- * Jakmile je v textu byť jeden nečeský diakritický znak, je to cizí název
- * a foldne se celý. Ověřeno na akceptačních příkladech v docs/SAMPLE_DATA.md.
+ * SPEC §6 původně chtěl českou diakritiku v obchodnících zachovat, ale rozlišovat
+ * „českou" a „cizí" nešlo dělat po znacích (`ó` je obojí, akceptační kritérium
+ * chce „Gdański Zarząd Dróg" → „Gdanski Zarzad Drog"). Na přání uživatele
+ * (2026-07-21) se ruší celá — obchodníci jdou do zprávy bez diakritiky.
+ *
+ * Týká se to JEN názvů obchodníků z výpisů. Texty pravidelných plateb
+ * (`recurring.ts`) i názvy měsíců jsou literály a diakritiku si ponechávají.
  */
 export function asciiFold(s: string): string {
-  const hasForeign = [...s].some(
-    (ch) => ch.charCodeAt(0) > 127 && !CZ_KEEP.has(ch) && foldChar(ch) !== ch,
-  );
-  if (!hasForeign) return s;
-
   let out = '';
   for (const ch of s) out += foldChar(ch);
   return out;
@@ -171,16 +166,9 @@ export function parseCsv(text: string, delim: string): string[][] {
   return rows.filter((r) => r.some((c) => c.trim() !== ''));
 }
 
-/** Plný fold na ASCII včetně české diakritiky — pro porovnávání názvů sloupců. */
-export function foldAll(s: string): string {
-  let out = '';
-  for (const ch of s) out += foldChar(ch);
-  return out;
-}
-
 /** Najde index sloupce podle libovolného z aliasů (bez diakritiky, case-insensitive). */
 export function colIndex(header: string[], ...aliases: string[]): number {
-  const norm = (s: string) => foldAll(s).toLowerCase().replace(/[^a-z0-9]/g, '');
+  const norm = (s: string) => asciiFold(s).toLowerCase().replace(/[^a-z0-9]/g, '');
   const wanted = aliases.map(norm);
   return header.findIndex((h) => wanted.includes(norm(h)));
 }

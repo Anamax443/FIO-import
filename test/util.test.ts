@@ -42,11 +42,16 @@ describe('data', () => {
 });
 
 describe('asciiFold', () => {
-  it('foldne cizí diakritiku, českou nechá', () => {
+  it('foldne veškerou diakritiku včetně české (rozhodnutí 2026-07-21)', () => {
     expect(asciiFold('Żabka')).toBe('Zabka');
     expect(asciiFold('Gdański Zarząd Dróg')).toBe('Gdanski Zarzad Drog');
-    expect(asciiFold('Havlíčkova 486')).toBe('Havlíčkova 486');
+    expect(asciiFold('Havlíčkova 486')).toBe('Havlickova 486');
+    expect(asciiFold('Kaufland Šumperk')).toBe('Kaufland Sumperk');
     expect(asciiFold('Łódź')).toBe('Lodz');
+  });
+
+  it('nechává ASCII beze změny', () => {
+    expect(asciiFold('Orlen 24/7')).toBe('Orlen 24/7');
   });
 });
 

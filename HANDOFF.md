@@ -2,6 +2,22 @@
 
 Append-only. Nejnovější záznam nahoru. Slouží k pokračování z jiného počítače / po pauze.
 
+## 2026-07-21 — zrušena česká výjimka v ASCII-foldu
+
+Na přání uživatele se u **obchodníků** foldne veškerá diakritika včetně české
+(`Havlíčkova` → `Havlickova`). Odpadl tím celý mechanismus rozlišování „česká × cizí"
+za celý řetězec — `asciiFold` je teď prostý per-znak fold, `foldAll` zaniklo.
+
+**Nedotčené (záměrně):** kategorie a poznámka z výpisu (`Dovolená`, `nákup`), texty
+pravidelných plateb a názvy měsíců (`stočné záloha…`, `červenec`). Důvod: přijatý
+referenční import v [SAMPLE_DATA.md](docs/SAMPLE_DATA.md) tuhle diakritiku obsahuje
+a test na shodu znak po znaku je nejsilnější důkaz, který o formátu máme.
+Kdyby se měla zrušit i tam, je to jedna změna v `buildMsg` + `recurring.ts`,
+ale rozbije to byte-shodu s referencí — chce to výslovné rozhodnutí.
+
+Aktualizováno v `docs/SPEC.md` §6 a v tabulce rozhodnutí v `docs/ARCHITECTURE.md`.
+37 testů zelených.
+
 ## 2026-07-21 — implementace jádra + UI + dokumentace
 
 **Hotové:**
