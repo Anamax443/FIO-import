@@ -9,6 +9,14 @@ secrets.*
 *.pfx
 *private*.pem
 id_rsa
+!.dev.vars.example
+
+# === Reálná data — NIKDY do gitu (čísla účtů, útraty) ===
+vypisy/
+data/
+*.csv
+/*.xml
+out/
 
 # === Node / web ===
 node_modules/

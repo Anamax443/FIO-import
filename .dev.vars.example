@@ -1,0 +1,3 @@
+# Lokální secrety pro `wrangler dev` — zkopíruj na `.dev.vars` a vyplň.
+# V produkci: npx wrangler secret put ANTHROPIC_API_KEY
+ANTHROPIC_API_KEY=sk-ant-...
