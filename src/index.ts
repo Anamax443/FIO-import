@@ -6,6 +6,7 @@
  *   /api/generate → buildXml → zápis dávky + ledgeru do D1 → stažení .xml
  */
 
+import { authorize } from './auth.js';
 import { classify } from './ai.js';
 import { dedupe } from './dedup.js';
 import { parseFioCard } from './parse/fioCard.js';
@@ -20,6 +21,10 @@ export interface Env {
   ASSETS: Fetcher;
   DB?: D1Database;
   ANTHROPIC_API_KEY?: string;
+  /** Brána k /api/* — viz src/auth.ts. Bez konfigurace API nic nepustí (fail-closed). */
+  APP_TOKEN?: string;
+  ACCESS_TEAM_DOMAIN?: string;
+  ACCESS_AUD?: string;
   COMMIT_SHA?: string;
   ACCOUNT_FROM?: string;
   ACCOUNT_TO?: string;
@@ -46,6 +51,12 @@ export default {
     const url = new URL(request.url);
 
     try {
+      // Veřejná URL by jinak vydala čísla účtů, adresu i odběrné místo elektřiny.
+      if (url.pathname.startsWith('/api/') && url.pathname !== '/api/version') {
+        const auth = await authorize(request, env);
+        if (!auth.ok) return json({ error: auth.error }, auth.status);
+      }
+
       if (url.pathname === '/api/version') return json({ commit: env.COMMIT_SHA ?? 'dev' });
       if (url.pathname === '/api/template') return json({ template: await loadTemplate(env) });
       if (url.pathname === '/api/process' && request.method === 'POST') return await handleProcess(request, env);

@@ -55,6 +55,7 @@ export const STRINGS = {
     problems: 'Validace selhala:',
     aiOff: 'AI vrstva neběžela (chybí ANTHROPIC_API_KEY nebo je vypnutá).',
     historyInfo: (n) => `Historie pro dedup: ${n} položek.`,
+    tokenPrompt: 'Přístupový token k aplikaci:',
     commit: 'Verze',
   },
 
@@ -113,6 +114,7 @@ export const STRINGS = {
     problems: 'Validation failed:',
     aiOff: 'AI layer did not run (missing ANTHROPIC_API_KEY or switched off).',
     historyInfo: (n) => `Dedup history: ${n} entries.`,
+    tokenPrompt: 'Application access token:',
     commit: 'Version',
   },
 };

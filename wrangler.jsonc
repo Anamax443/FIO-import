@@ -8,12 +8,11 @@
     "directory": "./public",
     "binding": "ASSETS"
   },
-  // database_id doplň po `npx wrangler d1 create fio-import` (viz docs/BUILD.md)
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "fio-import",
-      "database_id": "PLACEHOLDER-VYPLN-PO-VYTVORENI"
+      "database_id": "c082caa7-9624-43b3-bf77-7f1c5e8db94c"
     }
   ],
   "observability": { "enabled": true },

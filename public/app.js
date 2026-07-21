@@ -26,6 +26,31 @@ function applyLang() {
   render();
 }
 
+/* ---------- přístup ---------- */
+
+/**
+ * Volání API. Přes Cloudflare Access se přihlášení nese v cookie automaticky;
+ * záložní režim (sdílený token) si token drží v localStorage a doptá se na něj.
+ */
+async function api(path, options = {}) {
+  const headers = { ...(options.headers ?? {}) };
+  const token = localStorage.getItem('fio-token');
+  if (token) headers['x-app-token'] = token;
+
+  let res = await fetch(path, { ...options, headers, credentials: 'same-origin' });
+
+  if (res.status === 401) {
+    const entered = prompt(t.tokenPrompt);
+    if (!entered) return res;
+    localStorage.setItem('fio-token', entered.trim());
+    headers['x-app-token'] = entered.trim();
+    res = await fetch(path, { ...options, headers, credentials: 'same-origin' });
+    if (res.status === 401) localStorage.removeItem('fio-token');
+  }
+
+  return res;
+}
+
 /* ---------- pomocné ---------- */
 
 function showMessage(text, kind = 'ok', list = []) {
@@ -128,7 +153,7 @@ async function process() {
   showMessage(t.working, 'ok');
 
   try {
-    const res = await fetch('/api/process', {
+    const res = await api('/api/process', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
@@ -161,7 +186,7 @@ async function generate() {
   const btn = $('generate');
   btn.disabled = true;
   try {
-    const res = await fetch('/api/generate', {
+    const res = await api('/api/generate', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ date: $('date').value, rows }),
