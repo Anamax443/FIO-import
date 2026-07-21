@@ -57,7 +57,9 @@ export const STRINGS = {
     aiOff: 'AI vrstva neběžela (chybí ANTHROPIC_API_KEY nebo je vypnutá).',
     historyInfo: (n) => `Historie pro dedup: ${n} položek.`,
     tokenPrompt: 'Přístupový token k aplikaci:',
-    commit: 'Verze',
+    commit: 'verze',
+    online: 'Spojení s aplikací v pořádku — čas i verze jsou ze serveru',
+    offline: 'Aplikace neodpovídá — údaje v hlavičce nemusí být aktuální',
   },
 
   en: {
@@ -117,6 +119,8 @@ export const STRINGS = {
     aiOff: 'AI layer did not run (missing ANTHROPIC_API_KEY or switched off).',
     historyInfo: (n) => `Dedup history: ${n} entries.`,
     tokenPrompt: 'Application access token:',
-    commit: 'Version',
+    commit: 'version',
+    online: 'Connection to the app is healthy — time and version come from the server',
+    offline: 'The app is not responding — header values may be stale',
   },
 };

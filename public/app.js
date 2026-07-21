@@ -24,6 +24,7 @@ function applyLang() {
     const value = t[el.dataset.i18nTitle];
     if (typeof value === 'string') el.title = value;
   }
+  tickClock();
   render();
 }
 
@@ -217,6 +218,43 @@ async function generate() {
   }
 }
 
+/* ---------- hlavička: čas a verze ze serveru ---------- */
+
+/** Rozdíl mezi časem serveru a hodinami prohlížeče (ms). */
+let clockOffset = 0;
+
+async function syncHeader() {
+  const dot = $('dot');
+  try {
+    const res = await fetch('/api/version', { cache: 'no-store' });
+    const v = await res.json();
+
+    clockOffset = new Date(v.time).getTime() - Date.now();
+    $('commit').textContent = v.commit;
+    dot.className = 'dot online';
+    dot.title = t.online;
+  } catch {
+    dot.className = 'dot offline';
+    dot.title = t.offline;
+  }
+}
+
+function tickClock() {
+  const now = new Date(Date.now() + clockOffset);
+  $('clock').textContent = new Intl.DateTimeFormat(lang === 'cs' ? 'cs-CZ' : 'en-GB', {
+    dateStyle: 'short',
+    timeStyle: 'medium',
+  }).format(now);
+}
+
+function startHeaderClock() {
+  syncHeader();
+  tickClock();
+  setInterval(tickClock, 1000);
+  // Přesync: srovná drift hodin a ukáže, když se nasadí nová verze nebo appka spadne.
+  setInterval(syncHeader, 60_000);
+}
+
 /* ---------- soubory: drag & drop + rozpoznání typu ---------- */
 
 async function loadFiles(files, fallbackTarget) {
@@ -301,11 +339,7 @@ function init() {
 
   setupDropZones();
 
-  fetch('/api/version')
-    .then((r) => r.json())
-    .then((v) => { $('commit').textContent = v.commit; })
-    .catch(() => { $('commit').textContent = '?'; });
-
+  startHeaderClock();
   applyLang();
 }
 

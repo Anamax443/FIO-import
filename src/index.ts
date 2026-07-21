@@ -57,7 +57,10 @@ export default {
         if (!auth.ok) return json({ error: auth.error }, auth.status);
       }
 
-      if (url.pathname === '/api/version') return json({ commit: env.COMMIT_SHA ?? 'dev' });
+      if (url.pathname === '/api/version') {
+        // Čas ze serveru, ať hlavička ukazuje čas běžící aplikace, ne hodiny prohlížeče.
+        return json({ commit: env.COMMIT_SHA ?? 'dev', time: new Date().toISOString() });
+      }
       if (url.pathname === '/api/template') return json({ template: await loadTemplate(env) });
       if (url.pathname === '/api/process' && request.method === 'POST') return await handleProcess(request, env);
       if (url.pathname === '/api/generate' && request.method === 'POST') return await handleGenerate(request, env);

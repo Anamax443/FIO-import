@@ -120,5 +120,17 @@ td input[type="number"] { text-align: right; font-family: var(--mono); }
 .filerow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 .hint { color: var(--fg-dim); font-size: 11px; }
 
-footer { padding: 12px 20px; color: var(--fg-dim); font-size: 11px; border-top: 1px solid var(--line); }
+/* Razítko v hlavičce: stav spojení, serverový čas, běžící commit */
+.stamp {
+  display: flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 12px; color: var(--fg-dim);
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 4px; padding: 4px 10px;
+}
+.stamp .sep { opacity: .4; }
+.stamp #commit { color: var(--fg); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--fg-dim); flex: none; }
+.dot.online { background: var(--ok); box-shadow: 0 0 5px rgba(63,166,106,.8); }
+.dot.offline { background: var(--err); box-shadow: 0 0 5px rgba(217,83,79,.8); }
+
 .hidden { display: none; }

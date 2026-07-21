@@ -11,6 +11,12 @@
     <h1 data-i18n="title">FIO-import</h1>
     <span class="sub" data-i18n="subtitle"></span>
     <span class="spacer"></span>
+    <span class="stamp" id="stamp">
+      <span class="dot" id="dot" title=""></span>
+      <span id="clock">—</span>
+      <span class="sep">·</span>
+      <span data-i18n="commit"></span>&nbsp;<span id="commit">…</span>
+    </span>
     <label for="lang" class="hidden" data-i18n="lang"></label>
     <select id="lang" data-i18n-title="langTip">
       <option value="cs">Čeština</option>
@@ -132,10 +138,6 @@
       </div>
     </section>
   </main>
-
-  <footer>
-    <span data-i18n="commit"></span>: <span id="commit">…</span>
-  </footer>
 
   <script type="module" src="/app.js"></script>
 </body>
