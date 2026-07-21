@@ -10,7 +10,7 @@ import { authorize } from './auth.js';
 import { classify } from './ai.js';
 import { dedupe } from './dedup.js';
 import { parseFioCard } from './parse/fioCard.js';
-import { parseHistoryCsv } from './parse/history.js';
+import { parseFioMovements, parseHistoryCsv } from './parse/fioCsv.js';
 import { parsePrevXml, prevXmlToLedger } from './parse/prevXml.js';
 import { parseRevolut } from './parse/revolut.js';
 import { buildRecurring, RECURRING_TEMPLATE, renderTemplate, type RecurringRow } from './recurring.js';
@@ -88,10 +88,16 @@ async function handleProcess(request: Request, env: Env): Promise<Response> {
   const date = body.date ?? today();
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({ error: 'Datum splatnosti musí být RRRR-MM-DD.' }, 400);
 
-  // 1) Výpisy → společný line-item model
+  // 1) Výpisy → společný line-item model.
+  // U CSV pohybů rozhoduje znaménko: mínus = výdaj do dávky, plus = už uplatněno.
+  const movements = body.historyCsv
+    ? parseFioMovements(body.historyCsv, { accountFrom: constants(env).accountFrom })
+    : { expenses: [], history: [] };
+
   let rows: LineItem[] = [
     ...(body.fio ? parseFioCard(body.fio) : []),
     ...(body.revolut ? parseRevolut(body.revolut) : []),
+    ...movements.expenses,
   ];
 
   // 1b) Období transakcí — výpis často pokrývá víc, než se má rozúčtovat.
@@ -112,7 +118,7 @@ async function handleProcess(request: Request, env: Env): Promise<Response> {
   // 4) Historie už uplatněných nákladů: D1 ledger + nahrané CSV/XML v requestu
   const history: LedgerEntry[] = [
     ...(await loadLedger(env)),
-    ...(body.historyCsv ? parseHistoryCsv(body.historyCsv) : []),
+    ...movements.history,
     ...(body.prevXml ? prevXmlToLedger(body.prevXml) : []),
   ];
 
@@ -124,6 +130,7 @@ async function handleProcess(request: Request, env: Env): Promise<Response> {
     rows: deduped,
     report,
     outOfRange,
+    fromMovements: movements.expenses.length,
     historySize: history.length,
     aiUsed: body.useAi !== false && Boolean(env.ANTHROPIC_API_KEY),
   });
@@ -158,7 +165,7 @@ async function handleLedgerImport(request: Request, env: Env): Promise<Response>
   const body = (await request.json()) as { csv?: string };
   if (!body.csv) return json({ error: 'Chybí pole csv.' }, 400);
 
-  const entries = parseHistoryCsv(body.csv);
+  const entries = parseHistoryCsv(body.csv, { accountFrom: constants(env).accountFrom });
   await insertLedger(env.DB, entries, null);
 
   return json({ imported: entries.length });

@@ -350,6 +350,7 @@ async function process() {
     render();
 
     const notes = [t.historyInfo(data.historySize)];
+    if (data.fromMovements > 0) notes.push(t.fromMovementsInfo(data.fromMovements));
     if (data.outOfRange > 0) notes.push(t.outOfRangeInfo(data.outOfRange));
     if (!data.aiUsed) notes.push(t.aiOff);
     showMessage(notes.join(' '), data.outOfRange > 0 ? 'warn' : 'ok');

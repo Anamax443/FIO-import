@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { parseFioCard } from '../src/parse/fioCard.js';
 import { parseRevolut } from '../src/parse/revolut.js';
-import { parseHistoryCsv } from '../src/parse/history.js';
+import { parseHistoryCsv } from '../src/parse/fioCsv.js';
 import { parsePrevXml, prevXmlToLedger } from '../src/parse/prevXml.js';
 
 describe('Fio — copy-paste z IB', () => {
