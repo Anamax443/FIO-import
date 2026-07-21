@@ -2,7 +2,7 @@ import { detectKind } from './detect.js';
 import { STRINGS } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
-const TEXTAREAS = ['fio', 'revolut', 'historyCsv', 'prevXml'];
+const TEXTAREAS = ['revolut', 'historyCsv', 'prevXml'];
 
 let lang = localStorage.getItem('fio-lang') || 'cs';
 let t = STRINGS[lang];
@@ -29,6 +29,8 @@ function applyLang() {
     if (typeof value === 'string') el.placeholder = value;
   }
   tickClock();
+  renderHelp();
+  if (template.length) renderTemplate();
   render();
 }
 
@@ -245,9 +247,23 @@ function renderTemplate() {
 function updateTplSummary() {
   const total = template.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
   const mandatory = template.filter((r) => r.mandatory).length;
-  $('tplSummary').textContent = t.tplSummary(template.length, mandatory);
-  $('tplTotal').textContent = `${t.tplTotal} ${fmt(Math.round(total * 100) / 100)} CZK`;
+
+  $('tplCount').textContent = template.length;
+  $('tplMandatoryCount').textContent = mandatory;
+  $('tplTotalCard').textContent = `${fmt(Math.round(total * 100) / 100)} CZK`;
+
+  // Náhled, jak bude text vypadat po doplnění měsíce podle data splatnosti.
+  const due = $('date').value || isoDate(new Date());
+  const [rok, mes] = due.split('-');
+  const mesic = MONTHS[Number(mes) - 1] ?? '';
+  const first = template[0];
+  $('tplSummary').textContent = first
+    ? first.template.replace(/\{mesic\}/g, mesic).replace(/\{rok\}/g, rok)
+    : '—';
 }
+
+const MONTHS = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen',
+  'červenec', 'srpen', 'září', 'říjen', 'listopad', 'prosinec'];
 
 async function saveTemplate() {
   try {
@@ -335,7 +351,6 @@ async function process() {
         date: $('date').value,
         dateFrom: $('dateFrom').value || undefined,
         dateTo: $('dateTo').value || undefined,
-        fio: inputValue('fio'),
         revolut: inputValue('revolut'),
         historyCsv: inputValue('historyCsv'),
         prevXml: inputValue('prevXml'),
@@ -395,6 +410,35 @@ async function generate() {
   }
 }
 
+/* ---------- záložky ---------- */
+
+const TABS = ['davka', 'pravidelne', 'napoveda'];
+
+function showTab(name) {
+  const tab = TABS.includes(name) ? name : TABS[0];
+  for (const id of TABS) {
+    $(`page-${id}`).classList.toggle('hidden', id !== tab);
+  }
+  for (const btn of document.querySelectorAll('nav.tabs .tab')) {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  }
+  if (location.hash !== `#${tab}`) history.replaceState(null, '', `#${tab}`);
+}
+
+function setupTabs() {
+  for (const btn of document.querySelectorAll('nav.tabs .tab')) {
+    btn.addEventListener('click', () => showTab(btn.dataset.tab));
+  }
+  window.addEventListener('hashchange', () => showTab(location.hash.slice(1)));
+  showTab(location.hash.slice(1));
+}
+
+function renderHelp() {
+  $('helpBox').innerHTML = t.help.map((s) => `
+    <h3>${escapeHtml(s.h)}</h3>
+    <p>${escapeHtml(s.p)}</p>`).join('');
+}
+
 /* ---------- hlavička: čas a verze ze serveru ---------- */
 
 /** Rozdíl mezi časem serveru a hodinami prohlížeče (ms). */
@@ -435,7 +479,7 @@ function startHeaderClock() {
 /* ---------- soubory: drag & drop + rozpoznání typu ---------- */
 
 /** Obsah načtených souborů — do textarey se nesype, zůstane jen jmenovka. */
-const loaded = { fio: null, revolut: null, historyCsv: null, prevXml: null };
+const loaded = { revolut: null, historyCsv: null, prevXml: null };
 
 /** Co poslat na server: přednost má načtený soubor, jinak ručně vložený text. */
 function inputValue(target) {
@@ -448,7 +492,8 @@ async function loadFiles(files, fallbackTarget) {
   for (const file of files) {
     const text = await file.text();
     const detected = detectKind(text, file.name);
-    const target = detected ?? fallbackTarget;
+    // Rozpoznaný typ vyhrává, ale jen když pro něj pole existuje.
+    const target = detected && detected in loaded ? detected : fallbackTarget;
     if (!target || !(target in loaded)) continue;
 
     loaded[target] = { name: file.name, size: file.size, text };
@@ -499,7 +544,7 @@ function fmtSize(bytes) {
 }
 
 function fieldKey(target) {
-  return { fio: 'fio', revolut: 'revolut', historyCsv: 'history', prevXml: 'prevXml' }[target] ?? target;
+  return { revolut: 'revolut', historyCsv: 'history', prevXml: 'prevXml' }[target] ?? target;
 }
 
 function setupDropZones() {
@@ -579,9 +624,11 @@ function init() {
     });
   }
 
+  setupTabs();
   setupDropZones();
   setupBulk();
   setupTemplate();
+  $('date').addEventListener('change', updateTplSummary);
 
   startHeaderClock();
   applyLang();

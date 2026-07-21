@@ -34,7 +34,27 @@ header h1 { margin: 0; font-size: 16px; font-weight: 600; letter-spacing: .3px; 
 header .sub { color: var(--fg-dim); font-size: 12px; }
 header .spacer { flex: 1; }
 
+/* Záložky */
+nav.tabs { display: flex; gap: 2px; padding: 0 20px; background: var(--panel); border-bottom: 1px solid var(--line); }
+nav.tabs .tab {
+  background: none; border: none; border-bottom: 2px solid transparent; border-radius: 0;
+  padding: 10px 16px; color: var(--fg-dim); font-size: 13px;
+}
+nav.tabs .tab:hover { background: var(--panel-2); color: var(--fg); border-color: var(--line); }
+nav.tabs .tab.active { color: var(--fg); border-bottom-color: var(--accent); background: none; }
+
 main { padding: 20px; max-width: 1500px; }
+
+/* Karty s přehledem */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.cards .card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; }
+.cards .k { color: var(--fg-dim); font-size: 11px; text-transform: uppercase; letter-spacing: .7px; }
+.cards .v { font-family: var(--mono); font-size: 20px; font-weight: 600; margin-top: 4px; }
+
+/* Nápověda */
+.help h3 { font-size: 14px; margin: 20px 0 4px; color: var(--accent); }
+.help h3:first-child { margin-top: 0; }
+.help p { margin: 0; max-width: 90ch; color: var(--fg); }
 
 section {
   background: var(--panel);

@@ -25,197 +25,208 @@
     </select>
   </header>
 
+  <nav class="tabs">
+    <button class="tab" data-tab="davka" data-i18n-title="tabBatchTip"><span data-i18n="tabBatch"></span></button>
+    <button class="tab" data-tab="pravidelne" data-i18n-title="tabRecurringTip"><span data-i18n="tabRecurring"></span></button>
+    <button class="tab" data-tab="napoveda" data-i18n-title="tabHelpTip"><span data-i18n="tabHelp"></span></button>
+  </nav>
+
   <main>
     <div id="message"></div>
 
-    <section>
-      <h2 data-i18n="inputs">Vstupy</h2>
+    <!-- ───────────── Dávka ───────────── -->
+    <div class="page" id="page-davka">
+      <section>
+        <h2 data-i18n="inputs">Vstupy</h2>
 
-      <div class="row" style="margin-bottom:14px">
-        <div>
-          <label for="date" data-i18n="date"></label>
-          <input type="date" id="date" data-i18n-title="dateTip">
-        </div>
-        <div>
-          <label for="dateFrom" data-i18n="rangeFrom"></label>
-          <input type="date" id="dateFrom" data-i18n-title="rangeTip">
-        </div>
-        <div>
-          <label for="dateTo" data-i18n="rangeTo"></label>
-          <input type="date" id="dateTo" data-i18n-title="rangeTip">
-        </div>
-        <div style="align-self:end">
-          <button id="lastMonth" data-i18n-title="lastMonthTip"><span data-i18n="lastMonth"></span></button>
-        </div>
-        <div style="align-self:end">
-          <label><input type="checkbox" id="useAi" checked data-i18n-title="useAiTip">
-            <span data-i18n="useAi"></span></label>
-        </div>
-      </div>
-
-      <div class="grid">
-        <div class="dropzone" data-drop="fio">
-          <label for="fio" data-i18n="fio"></label>
-          <textarea id="fio" data-i18n-title="fioTip"></textarea>
-          <div class="chips"></div>
-          <div class="filerow">
-            <input type="file" accept=".txt,.csv,.tsv" multiple data-target="fio">
-            <span class="hint" data-i18n="dropHint"></span>
+        <div class="row" style="margin-bottom:14px">
+          <div>
+            <label for="date" data-i18n="date"></label>
+            <input type="date" id="date" data-i18n-title="dateTip">
+          </div>
+          <div>
+            <label for="dateFrom" data-i18n="rangeFrom"></label>
+            <input type="date" id="dateFrom" data-i18n-title="rangeTip">
+          </div>
+          <div>
+            <label for="dateTo" data-i18n="rangeTo"></label>
+            <input type="date" id="dateTo" data-i18n-title="rangeTip">
+          </div>
+          <div style="align-self:end">
+            <button id="lastMonth" data-i18n-title="lastMonthTip"><span data-i18n="lastMonth"></span></button>
+          </div>
+          <div style="align-self:end">
+            <label><input type="checkbox" id="useAi" checked data-i18n-title="useAiTip">
+              <span data-i18n="useAi"></span></label>
           </div>
         </div>
-        <div class="dropzone" data-drop="revolut">
-          <label for="revolut" data-i18n="revolut"></label>
-          <textarea id="revolut" data-i18n-title="revolutTip"></textarea>
-          <div class="chips"></div>
-          <div class="filerow">
-            <input type="file" accept=".csv" multiple data-target="revolut">
-            <span class="hint" data-i18n="dropHint"></span>
+
+        <div class="grid">
+          <div class="dropzone" data-drop="historyCsv">
+            <label for="historyCsv" data-i18n="history"></label>
+            <textarea id="historyCsv" data-i18n-title="historyTip"></textarea>
+            <div class="chips"></div>
+            <div class="filerow">
+              <input type="file" accept=".csv" multiple data-target="historyCsv">
+              <span class="hint" data-i18n="dropHint"></span>
+            </div>
+          </div>
+          <div class="dropzone" data-drop="revolut">
+            <label for="revolut" data-i18n="revolut"></label>
+            <textarea id="revolut" data-i18n-title="revolutTip"></textarea>
+            <div class="chips"></div>
+            <div class="filerow">
+              <input type="file" accept=".csv" multiple data-target="revolut">
+              <span class="hint" data-i18n="dropHint"></span>
+            </div>
+          </div>
+          <div class="dropzone" data-drop="prevXml">
+            <label for="prevXml" data-i18n="prevXml"></label>
+            <textarea id="prevXml" data-i18n-title="prevXmlTip"></textarea>
+            <div class="chips"></div>
+            <div class="filerow">
+              <input type="file" accept=".xml" multiple data-target="prevXml">
+              <span class="hint" data-i18n="dropHint"></span>
+            </div>
           </div>
         </div>
-        <div class="dropzone" data-drop="historyCsv">
-          <label for="historyCsv" data-i18n="history"></label>
-          <textarea id="historyCsv" data-i18n-title="historyTip"></textarea>
-          <div class="chips"></div>
-          <div class="filerow">
-            <input type="file" accept=".csv" multiple data-target="historyCsv">
-            <span class="hint" data-i18n="dropHint"></span>
-          </div>
+
+        <div class="row end" style="margin-top:14px">
+          <button id="clear" data-i18n-title="clearTip"><span data-i18n="clear"></span></button>
+          <button id="process" class="primary" data-i18n-title="processTip"><span data-i18n="process"></span></button>
         </div>
-        <div class="dropzone" data-drop="prevXml">
-          <label for="prevXml" data-i18n="prevXml"></label>
-          <textarea id="prevXml" data-i18n-title="prevXmlTip"></textarea>
-          <div class="chips"></div>
-          <div class="filerow">
-            <input type="file" accept=".xml" multiple data-target="prevXml">
-            <span class="hint" data-i18n="dropHint"></span>
-          </div>
+      </section>
+
+      <section>
+        <h2 data-i18n="review">Kontrola před generováním</h2>
+
+        <div class="row" style="margin-bottom:10px">
+          <label><input type="checkbox" id="fMandatory" data-i18n-title="onlyMandatoryTip">
+            <span data-i18n="onlyMandatory"></span></label>
+          <span style="flex:1"></span>
+          <span class="hint" id="shown"></span>
+          <button id="clearFilters" data-i18n-title="clearFiltersTip"><span data-i18n="clearFilters"></span></button>
         </div>
-      </div>
 
-      <div class="row end" style="margin-top:14px">
-        <button id="clear" data-i18n-title="clearTip"><span data-i18n="clear"></span></button>
-        <button id="process" class="primary" data-i18n-title="processTip"><span data-i18n="process"></span></button>
-      </div>
-    </section>
+        <div class="bulk">
+          <span class="bulk-label" data-i18n="bulkTitle"></span>
+          <input type="text" id="bulkText" data-i18n-placeholder="bulkTextPh" data-i18n-title="bulkTextTip">
+          <button id="bulkPrefix" data-i18n-title="bulkPrefixTip"><span data-i18n="bulkPrefix"></span></button>
+          <button id="bulkSuffix" data-i18n-title="bulkSuffixTip"><span data-i18n="bulkSuffix"></span></button>
+          <span class="sep">|</span>
+          <input type="text" id="bulkFind" data-i18n-placeholder="bulkFindPh">
+          <input type="text" id="bulkReplace" data-i18n-placeholder="bulkReplacePh">
+          <button id="bulkDoReplace" data-i18n-title="bulkReplaceTip"><span data-i18n="bulkReplaceBtn"></span></button>
+          <span class="sep">|</span>
+          <button id="bulkOn" data-i18n-title="bulkOnTip"><span data-i18n="bulkOn"></span></button>
+          <button id="bulkOff" data-i18n-title="bulkOffTip"><span data-i18n="bulkOff"></span></button>
+        </div>
 
-    <section>
-      <details id="tplBox">
-        <summary>
-          <span data-i18n="tplTitle"></span>
-          <span class="hint" id="tplSummary"></span>
-        </summary>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="colInclude"></th>
+                <th data-i18n="colSource"></th>
+                <th data-i18n="colStatus"></th>
+                <th data-i18n="colDate"></th>
+                <th class="num" data-i18n="colAmount"></th>
+                <th data-i18n="colMessage"></th>
+              </tr>
+              <tr class="filters">
+                <th>
+                  <select id="fInclude" data-i18n-title="fIncludeTip">
+                    <option value="" data-i18n="filterAll"></option>
+                    <option value="on" data-i18n="fOn"></option>
+                    <option value="off" data-i18n="fOff"></option>
+                  </select>
+                </th>
+                <th>
+                  <select id="fSource" data-i18n-title="filterSource">
+                    <option value="" data-i18n="filterAll"></option>
+                    <option value="fio">fio</option>
+                    <option value="revolut">revolut</option>
+                    <option value="pravidelna" data-i18n="srcRecurring"></option>
+                  </select>
+                </th>
+                <th>
+                  <select id="fStatus" data-i18n-title="filterStatus">
+                    <option value="" data-i18n="filterAll"></option>
+                    <option value="NEW">NEW</option>
+                    <option value="ALREADY_CLAIMED">ALREADY_CLAIMED</option>
+                    <option value="DUPLICATE_IN_BATCH">DUPLICATE_IN_BATCH</option>
+                  </select>
+                </th>
+                <th><input type="search" id="fDate" data-i18n-placeholder="fDatePh" data-i18n-title="fDateTip"></th>
+                <th class="num">
+                  <div class="minmax">
+                    <input type="number" id="fMin" step="0.01" data-i18n-placeholder="fMinPh" data-i18n-title="fAmountTip">
+                    <input type="number" id="fMax" step="0.01" data-i18n-placeholder="fMaxPh" data-i18n-title="fAmountTip">
+                  </div>
+                </th>
+                <th><input type="search" id="fText" data-i18n-placeholder="fTextPh" data-i18n-title="fTextTip"></th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
 
-        <p class="hint" data-i18n="tplHelp" style="margin:10px 0"></p>
+        <div class="summary">
+          <span class="item"><span class="label" data-i18n="sumCount"></span> <b id="sumCount">0</b></span>
+          <span class="item"><span class="label" data-i18n="sumTotal"></span> <b id="sumTotal">0</b> CZK</span>
+          <span class="item"><span class="label" data-i18n="sumClaimed"></span> <b id="sumClaimed">0</b></span>
+          <span class="item"><span class="label" data-i18n="sumDup"></span> <b id="sumDup">0</b></span>
+          <span class="spacer" style="flex:1"></span>
+          <button id="generate" class="primary" disabled data-i18n-title="generateTip">
+            <span data-i18n="generate"></span>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ───────────── Pravidelné a povinné platby ───────────── -->
+    <div class="page hidden" id="page-pravidelne">
+      <section>
+        <h2 data-i18n="tplTitle">Pravidelné a povinné platby</h2>
+        <p class="hint" data-i18n="tplHelp" style="margin:0 0 14px"></p>
+
+        <div class="cards">
+          <div class="card"><div class="k" data-i18n="tplCardCount"></div><div class="v" id="tplCount">0</div></div>
+          <div class="card"><div class="k" data-i18n="tplCardMandatory"></div><div class="v" id="tplMandatoryCount">0</div></div>
+          <div class="card"><div class="k" data-i18n="tplCardTotal"></div><div class="v" id="tplTotalCard">0</div></div>
+        </div>
 
         <div class="table-wrap" style="max-height:none">
           <table id="tplTable">
             <thead>
               <tr>
-                <th style="width:90px" data-i18n="tplMandatory"></th>
-                <th class="num" style="width:130px" data-i18n="tplAmount"></th>
+                <th style="width:110px" data-i18n="tplMandatory"></th>
+                <th class="num" style="width:150px" data-i18n="tplAmount"></th>
                 <th data-i18n="tplText"></th>
-                <th style="width:40px"></th>
+                <th style="width:44px"></th>
               </tr>
             </thead>
             <tbody id="tplRows"></tbody>
           </table>
         </div>
 
-        <div class="row" style="margin-top:12px">
+        <div class="summary">
+          <span class="item"><span class="label" data-i18n="tplPreview"></span> <b id="tplSummary"></b></span>
+          <span class="spacer" style="flex:1"></span>
           <button id="tplAdd" data-i18n-title="tplAddTip"><span data-i18n="tplAdd"></span></button>
           <button id="tplDefaults" data-i18n-title="tplDefaultsTip"><span data-i18n="tplDefaults"></span></button>
-          <span style="flex:1"></span>
-          <span class="hint" id="tplTotal"></span>
           <button id="tplSave" class="primary" data-i18n-title="tplSaveTip"><span data-i18n="tplSave"></span></button>
         </div>
-      </details>
-    </section>
+      </section>
+    </div>
 
-    <section>
-      <h2 data-i18n="review">Kontrola před generováním</h2>
-
-      <div class="row" style="margin-bottom:10px">
-        <label><input type="checkbox" id="fMandatory" data-i18n-title="onlyMandatoryTip">
-          <span data-i18n="onlyMandatory"></span></label>
-        <span style="flex:1"></span>
-        <span class="hint" id="shown"></span>
-        <button id="clearFilters" data-i18n-title="clearFiltersTip"><span data-i18n="clearFilters"></span></button>
-      </div>
-
-      <div class="bulk">
-        <span class="bulk-label" data-i18n="bulkTitle"></span>
-        <input type="text" id="bulkText" data-i18n-placeholder="bulkTextPh" data-i18n-title="bulkTextTip">
-        <button id="bulkPrefix" data-i18n-title="bulkPrefixTip"><span data-i18n="bulkPrefix"></span></button>
-        <button id="bulkSuffix" data-i18n-title="bulkSuffixTip"><span data-i18n="bulkSuffix"></span></button>
-        <span class="sep">|</span>
-        <input type="text" id="bulkFind" data-i18n-placeholder="bulkFindPh">
-        <input type="text" id="bulkReplace" data-i18n-placeholder="bulkReplacePh">
-        <button id="bulkDoReplace" data-i18n-title="bulkReplaceTip"><span data-i18n="bulkReplaceBtn"></span></button>
-        <span class="sep">|</span>
-        <button id="bulkOn" data-i18n-title="bulkOnTip"><span data-i18n="bulkOn"></span></button>
-        <button id="bulkOff" data-i18n-title="bulkOffTip"><span data-i18n="bulkOff"></span></button>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th data-i18n="colInclude"></th>
-              <th data-i18n="colSource"></th>
-              <th data-i18n="colStatus"></th>
-              <th data-i18n="colDate"></th>
-              <th class="num" data-i18n="colAmount"></th>
-              <th data-i18n="colMessage"></th>
-            </tr>
-            <tr class="filters">
-              <th>
-                <select id="fInclude" data-i18n-title="fIncludeTip">
-                  <option value="" data-i18n="filterAll"></option>
-                  <option value="on" data-i18n="fOn"></option>
-                  <option value="off" data-i18n="fOff"></option>
-                </select>
-              </th>
-              <th>
-                <select id="fSource" data-i18n-title="filterSource">
-                  <option value="" data-i18n="filterAll"></option>
-                  <option value="fio">fio</option>
-                  <option value="revolut">revolut</option>
-                  <option value="pravidelna" data-i18n="srcRecurring"></option>
-                </select>
-              </th>
-              <th>
-                <select id="fStatus" data-i18n-title="filterStatus">
-                  <option value="" data-i18n="filterAll"></option>
-                  <option value="NEW">NEW</option>
-                  <option value="ALREADY_CLAIMED">ALREADY_CLAIMED</option>
-                  <option value="DUPLICATE_IN_BATCH">DUPLICATE_IN_BATCH</option>
-                </select>
-              </th>
-              <th><input type="search" id="fDate" data-i18n-placeholder="fDatePh" data-i18n-title="fDateTip"></th>
-              <th class="num">
-                <div class="minmax">
-                  <input type="number" id="fMin" step="0.01" data-i18n-placeholder="fMinPh" data-i18n-title="fAmountTip">
-                  <input type="number" id="fMax" step="0.01" data-i18n-placeholder="fMaxPh" data-i18n-title="fAmountTip">
-                </div>
-              </th>
-              <th><input type="search" id="fText" data-i18n-placeholder="fTextPh" data-i18n-title="fTextTip"></th>
-            </tr>
-          </thead>
-          <tbody id="rows"></tbody>
-        </table>
-      </div>
-
-      <div class="summary">
-        <span class="item"><span class="label" data-i18n="sumCount"></span> <b id="sumCount">0</b></span>
-        <span class="item"><span class="label" data-i18n="sumTotal"></span> <b id="sumTotal">0</b> CZK</span>
-        <span class="item"><span class="label" data-i18n="sumClaimed"></span> <b id="sumClaimed">0</b></span>
-        <span class="item"><span class="label" data-i18n="sumDup"></span> <b id="sumDup">0</b></span>
-        <span class="spacer" style="flex:1"></span>
-        <button id="generate" class="primary" disabled data-i18n-title="generateTip">
-          <span data-i18n="generate"></span>
-        </button>
-      </div>
-    </section>
+    <!-- ───────────── Nápověda ───────────── -->
+    <div class="page hidden" id="page-napoveda">
+      <section>
+        <h2 data-i18n="tabHelp">Nápověda</h2>
+        <div id="helpBox" class="help"></div>
+      </section>
+    </div>
   </main>
 
   <script type="module" src="/app.js"></script>
