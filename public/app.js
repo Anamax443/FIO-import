@@ -195,6 +195,131 @@ function updateSummary() {
   $('generate').disabled = active.length === 0;
 }
 
+/* ---------- šablona pravidelných / mandatorních plateb ---------- */
+
+let template = [];
+
+async function loadTemplate(useDefaults = false) {
+  try {
+    const res = await api(`/api/template${useDefaults ? '?defaults=1' : ''}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    template = data.template ?? [];
+    renderTemplate();
+  } catch (err) {
+    showMessage(String(err.message ?? err), 'err');
+  }
+}
+
+function renderTemplate() {
+  $('tplRows').innerHTML = template.map((row, i) => `
+    <tr data-i="${i}"${row.mandatory ? ' class="mandatory"' : ''}>
+      <td class="keep"><label><input type="checkbox" class="tplM" ${row.mandatory ? 'checked' : ''}>
+        <span class="hint">${escapeHtml(t.tplMandatoryShort)}</span></label></td>
+      <td class="num"><input type="number" step="0.01" class="tplA" value="${row.amount}"></td>
+      <td><input type="text" class="tplT" value="${escapeHtml(row.template)}"></td>
+      <td><button class="tplDel" type="button" title="${escapeHtml(t.tplDelete)}">✕</button></td>
+    </tr>`).join('');
+
+  for (const tr of $('tplRows').querySelectorAll('tr[data-i]')) {
+    const row = template[Number(tr.dataset.i)];
+    tr.querySelector('.tplM').addEventListener('change', (e) => {
+      row.mandatory = e.target.checked;
+      tr.classList.toggle('mandatory', row.mandatory);
+      updateTplSummary();
+    });
+    tr.querySelector('.tplA').addEventListener('input', (e) => {
+      const v = Number(String(e.target.value).replace(',', '.'));
+      if (Number.isFinite(v)) { row.amount = v; updateTplSummary(); }
+    });
+    tr.querySelector('.tplT').addEventListener('input', (e) => { row.template = e.target.value; });
+    tr.querySelector('.tplDel').addEventListener('click', () => {
+      template.splice(Number(tr.dataset.i), 1);
+      renderTemplate();
+    });
+  }
+
+  updateTplSummary();
+}
+
+function updateTplSummary() {
+  const total = template.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
+  const mandatory = template.filter((r) => r.mandatory).length;
+  $('tplSummary').textContent = t.tplSummary(template.length, mandatory);
+  $('tplTotal').textContent = `${t.tplTotal} ${fmt(Math.round(total * 100) / 100)} CZK`;
+}
+
+async function saveTemplate() {
+  try {
+    const res = await api('/api/template', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ template }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    template = data.template ?? template;
+    renderTemplate();
+    showMessage(t.tplSaved(data.saved), 'ok');
+  } catch (err) {
+    showMessage(String(err.message ?? err), 'err');
+  }
+}
+
+function setupTemplate() {
+  $('tplAdd').addEventListener('click', () => {
+    template.push({ ord: template.length + 1, amount: 0, mandatory: false, template: `${t.tplNewText} {mesic} {rok}` });
+    renderTemplate();
+    $('tplRows').lastElementChild?.querySelector('.tplA')?.focus();
+  });
+  $('tplDefaults').addEventListener('click', () => {
+    if (confirm(t.tplDefaultsConfirm)) loadTemplate(true);
+  });
+  $('tplSave').addEventListener('click', saveTemplate);
+  loadTemplate();
+}
+
+/* ---------- hromadné úpravy zafiltrovaných řádků ---------- */
+
+function bulkEdit(fn, { needsText = true } = {}) {
+  const targets = visibleRows();
+  if (targets.length === 0) { showMessage(t.bulkNone, 'warn'); return; }
+  if (needsText && !$('bulkText').value && !$('bulkFind').value) { showMessage(t.bulkNoText, 'warn'); return; }
+
+  for (const row of targets) {
+    // Povinné platby chráníme i tady — hromadná úprava je nesmí tiše vypnout.
+    if (row.mandatory && fn.name === 'turnOff') continue;
+    fn(row);
+  }
+
+  render();
+
+  const tooLong = targets.filter((r) => r.message.length > 140).length;
+  showMessage(
+    tooLong ? `${t.bulkDone(targets.length)} ${t.bulkTooLong(tooLong)}` : t.bulkDone(targets.length),
+    tooLong ? 'warn' : 'ok',
+  );
+}
+
+function setupBulk() {
+  const text = () => $('bulkText').value;
+
+  $('bulkPrefix').addEventListener('click', () =>
+    bulkEdit((r) => { r.message = `${text()} ${r.message}`.trim(); }));
+
+  $('bulkSuffix').addEventListener('click', () =>
+    bulkEdit((r) => { r.message = `${r.message} ${text()}`.trim(); }));
+
+  $('bulkDoReplace').addEventListener('click', () =>
+    bulkEdit((r) => { r.message = r.message.split($('bulkFind').value).join($('bulkReplace').value).trim(); }));
+
+  $('bulkOn').addEventListener('click', () =>
+    bulkEdit(function turnOn(r) { r.include = true; }, { needsText: false }));
+
+  $('bulkOff').addEventListener('click', () =>
+    bulkEdit(function turnOff(r) { r.include = false; }, { needsText: false }));
+}
+
 /* ---------- akce ---------- */
 
 async function process() {
@@ -210,10 +335,10 @@ async function process() {
         date: $('date').value,
         dateFrom: $('dateFrom').value || undefined,
         dateTo: $('dateTo').value || undefined,
-        fio: $('fio').value,
-        revolut: $('revolut').value,
-        historyCsv: $('historyCsv').value,
-        prevXml: $('prevXml').value,
+        fio: inputValue('fio'),
+        revolut: inputValue('revolut'),
+        historyCsv: inputValue('historyCsv'),
+        prevXml: inputValue('prevXml'),
         useAi: $('useAi').checked,
       }),
     });
@@ -308,6 +433,14 @@ function startHeaderClock() {
 
 /* ---------- soubory: drag & drop + rozpoznání typu ---------- */
 
+/** Obsah načtených souborů — do textarey se nesype, zůstane jen jmenovka. */
+const loaded = { fio: null, revolut: null, historyCsv: null, prevXml: null };
+
+/** Co poslat na server: přednost má načtený soubor, jinak ručně vložený text. */
+function inputValue(target) {
+  return loaded[target]?.text ?? $(target).value;
+}
+
 async function loadFiles(files, fallbackTarget) {
   const placed = [];
 
@@ -315,9 +448,11 @@ async function loadFiles(files, fallbackTarget) {
     const text = await file.text();
     const detected = detectKind(text, file.name);
     const target = detected ?? fallbackTarget;
-    if (!target || !$(target)) continue;
+    if (!target || !(target in loaded)) continue;
 
-    $(target).value = text;
+    loaded[target] = { name: file.name, size: file.size, text };
+    $(target).value = '';
+    renderZone(target);
     placed.push({ file: file.name, target, moved: Boolean(detected) && detected !== fallbackTarget });
   }
 
@@ -327,6 +462,39 @@ async function loadFiles(files, fallbackTarget) {
     placed.map((p) => `${p.file} → ${t[fieldKey(p.target)]}`).join(' · '),
     moved.length ? 'warn' : 'ok',
   );
+}
+
+function renderZone(target) {
+  const zone = document.querySelector(`[data-drop="${target}"]`);
+  const chips = zone.querySelector('.chips');
+  const textarea = $(target);
+  const info = loaded[target];
+
+  if (!info) {
+    chips.innerHTML = '';
+    textarea.classList.remove('hidden');
+    return;
+  }
+
+  const lines = info.text.split(/\r?\n/).filter((l) => l.trim() !== '').length;
+  textarea.classList.add('hidden');
+  chips.innerHTML = `
+    <span class="chip" title="${escapeHtml(info.name)}">
+      <span class="ico">📄</span>
+      <span class="name">${escapeHtml(info.name)}</span>
+      <span class="dim">${fmtSize(info.size)} · ${t.lines(lines)}</span>
+      <button class="x" type="button" title="${escapeHtml(t.removeFile)}">✕</button>
+    </span>`;
+  chips.querySelector('.x').addEventListener('click', () => {
+    loaded[target] = null;
+    renderZone(target);
+  });
+}
+
+function fmtSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} kB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
 function fieldKey(target) {
@@ -358,7 +526,12 @@ function setupDropZones() {
 
       // Přetažený text (např. výběr z internetového bankovnictví).
       const text = e.dataTransfer?.getData('text/plain');
-      if (text) $(detectKind(text) ?? target).value = text;
+      if (text) {
+        const dest = detectKind(text) ?? target;
+        loaded[dest] = null;
+        renderZone(dest);
+        $(dest).value = text;
+      }
     });
   }
 }
@@ -373,7 +546,11 @@ function init() {
   $('process').addEventListener('click', process);
   $('generate').addEventListener('click', generate);
   $('clear').addEventListener('click', () => {
-    for (const id of TEXTAREAS) $(id).value = '';
+    for (const id of TEXTAREAS) {
+      $(id).value = '';
+      loaded[id] = null;
+      renderZone(id);
+    }
     rows = [];
     showMessage('');
     render();
@@ -402,6 +579,8 @@ function init() {
   }
 
   setupDropZones();
+  setupBulk();
+  setupTemplate();
 
   startHeaderClock();
   applyLang();

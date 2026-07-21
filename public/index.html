@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FIO-import</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230f1419'/%3E%3Cpath d='M16 7v13M10.5 14.5 16 20l5.5-5.5M8 25h16' stroke='%234aa3df' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -56,6 +57,7 @@
         <div class="dropzone" data-drop="fio">
           <label for="fio" data-i18n="fio"></label>
           <textarea id="fio" data-i18n-title="fioTip"></textarea>
+          <div class="chips"></div>
           <div class="filerow">
             <input type="file" accept=".txt,.csv,.tsv" multiple data-target="fio">
             <span class="hint" data-i18n="dropHint"></span>
@@ -64,6 +66,7 @@
         <div class="dropzone" data-drop="revolut">
           <label for="revolut" data-i18n="revolut"></label>
           <textarea id="revolut" data-i18n-title="revolutTip"></textarea>
+          <div class="chips"></div>
           <div class="filerow">
             <input type="file" accept=".csv" multiple data-target="revolut">
             <span class="hint" data-i18n="dropHint"></span>
@@ -72,6 +75,7 @@
         <div class="dropzone" data-drop="historyCsv">
           <label for="historyCsv" data-i18n="history"></label>
           <textarea id="historyCsv" data-i18n-title="historyTip"></textarea>
+          <div class="chips"></div>
           <div class="filerow">
             <input type="file" accept=".csv" multiple data-target="historyCsv">
             <span class="hint" data-i18n="dropHint"></span>
@@ -80,6 +84,7 @@
         <div class="dropzone" data-drop="prevXml">
           <label for="prevXml" data-i18n="prevXml"></label>
           <textarea id="prevXml" data-i18n-title="prevXmlTip"></textarea>
+          <div class="chips"></div>
           <div class="filerow">
             <input type="file" accept=".xml" multiple data-target="prevXml">
             <span class="hint" data-i18n="dropHint"></span>
@@ -94,6 +99,39 @@
     </section>
 
     <section>
+      <details id="tplBox">
+        <summary>
+          <span data-i18n="tplTitle"></span>
+          <span class="hint" id="tplSummary"></span>
+        </summary>
+
+        <p class="hint" data-i18n="tplHelp" style="margin:10px 0"></p>
+
+        <div class="table-wrap" style="max-height:none">
+          <table id="tplTable">
+            <thead>
+              <tr>
+                <th style="width:90px" data-i18n="tplMandatory"></th>
+                <th class="num" style="width:130px" data-i18n="tplAmount"></th>
+                <th data-i18n="tplText"></th>
+                <th style="width:40px"></th>
+              </tr>
+            </thead>
+            <tbody id="tplRows"></tbody>
+          </table>
+        </div>
+
+        <div class="row" style="margin-top:12px">
+          <button id="tplAdd" data-i18n-title="tplAddTip"><span data-i18n="tplAdd"></span></button>
+          <button id="tplDefaults" data-i18n-title="tplDefaultsTip"><span data-i18n="tplDefaults"></span></button>
+          <span style="flex:1"></span>
+          <span class="hint" id="tplTotal"></span>
+          <button id="tplSave" class="primary" data-i18n-title="tplSaveTip"><span data-i18n="tplSave"></span></button>
+        </div>
+      </details>
+    </section>
+
+    <section>
       <h2 data-i18n="review">Kontrola před generováním</h2>
 
       <div class="row" style="margin-bottom:10px">
@@ -102,6 +140,20 @@
         <span style="flex:1"></span>
         <span class="hint" id="shown"></span>
         <button id="clearFilters" data-i18n-title="clearFiltersTip"><span data-i18n="clearFilters"></span></button>
+      </div>
+
+      <div class="bulk">
+        <span class="bulk-label" data-i18n="bulkTitle"></span>
+        <input type="text" id="bulkText" data-i18n-placeholder="bulkTextPh" data-i18n-title="bulkTextTip">
+        <button id="bulkPrefix" data-i18n-title="bulkPrefixTip"><span data-i18n="bulkPrefix"></span></button>
+        <button id="bulkSuffix" data-i18n-title="bulkSuffixTip"><span data-i18n="bulkSuffix"></span></button>
+        <span class="sep">|</span>
+        <input type="text" id="bulkFind" data-i18n-placeholder="bulkFindPh">
+        <input type="text" id="bulkReplace" data-i18n-placeholder="bulkReplacePh">
+        <button id="bulkDoReplace" data-i18n-title="bulkReplaceTip"><span data-i18n="bulkReplaceBtn"></span></button>
+        <span class="sep">|</span>
+        <button id="bulkOn" data-i18n-title="bulkOnTip"><span data-i18n="bulkOn"></span></button>
+        <button id="bulkOff" data-i18n-title="bulkOffTip"><span data-i18n="bulkOff"></span></button>
       </div>
 
       <div class="table-wrap">

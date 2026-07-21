@@ -13,9 +13,9 @@ import { parseFioCard } from './parse/fioCard.js';
 import { parseHistoryCsv } from './parse/history.js';
 import { parsePrevXml, prevXmlToLedger } from './parse/prevXml.js';
 import { parseRevolut } from './parse/revolut.js';
-import { buildRecurring, RECURRING_TEMPLATE, type RecurringRow } from './recurring.js';
+import { buildRecurring, RECURRING_TEMPLATE, renderTemplate, type RecurringRow } from './recurring.js';
 import { inRange } from './util.js';
-import { buildXml, DEFAULT_CONSTANTS, validate, type XmlConstants } from './xml.js';
+import { buildXml, DEFAULT_CONSTANTS, MESSAGE_MAX_LEN, validate, type XmlConstants } from './xml.js';
 import type { LedgerEntry, LineItem } from './types.js';
 
 export interface Env {
@@ -65,7 +65,11 @@ export default {
         // Čas ze serveru, ať hlavička ukazuje čas běžící aplikace, ne hodiny prohlížeče.
         return json({ commit: env.COMMIT_SHA ?? 'dev', time: new Date().toISOString() });
       }
-      if (url.pathname === '/api/template') return json({ template: await loadTemplate(env) });
+      if (url.pathname === '/api/template') {
+        if (request.method === 'POST') return await handleTemplateSave(request, env);
+        if (url.searchParams.get('defaults') === '1') return json({ template: RECURRING_TEMPLATE, source: 'default' });
+        return json({ template: await loadTemplate(env), source: env.DB ? 'db' : 'default' });
+      }
       if (url.pathname === '/api/process' && request.method === 'POST') return await handleProcess(request, env);
       if (url.pathname === '/api/generate' && request.method === 'POST') return await handleGenerate(request, env);
       if (url.pathname === '/api/ledger/import' && request.method === 'POST') return await handleLedgerImport(request, env);
@@ -158,6 +162,52 @@ async function handleLedgerImport(request: Request, env: Env): Promise<Response>
   await insertLedger(env.DB, entries, null);
 
   return json({ imported: entries.length });
+}
+
+async function handleTemplateSave(request: Request, env: Env): Promise<Response> {
+  if (!env.DB) return json({ error: 'Uložení šablony vyžaduje D1 databázi (viz docs/BUILD.md §3).' }, 501);
+
+  const body = (await request.json()) as { template?: unknown };
+  const parsed = validateTemplate(body.template);
+  if ('error' in parsed) return json({ error: parsed.error }, 400);
+
+  await env.DB.prepare('DELETE FROM recurring_template').run();
+  const stmt = env.DB.prepare(
+    'INSERT INTO recurring_template (ord, amount, mandatory, template) VALUES (?, ?, ?, ?)',
+  );
+  await env.DB.batch(
+    parsed.rows.map((r, i) => stmt.bind(i + 1, r.amount, r.mandatory ? 1 : 0, r.template)),
+  );
+
+  return json({ saved: parsed.rows.length, template: parsed.rows });
+}
+
+/** Šablona jde do každé dávky, takže se kontroluje dřív, než se uloží. */
+export function validateTemplate(input: unknown): { rows: RecurringRow[] } | { error: string } {
+  if (!Array.isArray(input)) return { error: 'Chybí pole template.' };
+  if (input.length === 0) return { error: 'Šablona nesmí být prázdná.' };
+  if (input.length > 100) return { error: 'Šablona má nejvýš 100 řádků.' };
+
+  const rows: RecurringRow[] = [];
+  for (const [i, raw] of input.entries()) {
+    const row = raw as Partial<RecurringRow>;
+    const amount = Number(row.amount);
+    const template = String(row.template ?? '').trim();
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return { error: `Řádek ${i + 1}: částka musí být kladné číslo.` };
+    }
+    if (!template) return { error: `Řádek ${i + 1}: chybí text platby.` };
+
+    // Nejdelší měsíc + rok, aby text neprorazil limit Fio ani v listopadu.
+    const rendered = renderTemplate(template, 'listopad', '2026');
+    if (rendered.length > MESSAGE_MAX_LEN) {
+      return { error: `Řádek ${i + 1}: text má po doplnění měsíce ${rendered.length} znaků, limit je ${MESSAGE_MAX_LEN}.` };
+    }
+
+    rows.push({ ord: i + 1, amount, mandatory: Boolean(row.mandatory), template });
+  }
+  return { rows };
 }
 
 /* ---------- D1 (volitelné — bez databáze appka funguje, jen si nepamatuje historii) ---------- */
