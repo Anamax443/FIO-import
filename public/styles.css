@@ -143,6 +143,7 @@ td input[type="number"] { text-align: right; font-family: var(--mono); }
 .bulk input { font-size: 12px; padding: 4px 7px; min-width: 130px; }
 .bulk button { font-size: 12px; padding: 4px 9px; }
 .bulk .sep { color: var(--line); }
+.bulk button.danger:hover:not(:disabled) { border-color: var(--err); color: #f3b6b4; }
 
 /* Šablona pravidelných plateb */
 details#tplBox > summary { cursor: pointer; font-size: 13px; text-transform: uppercase; letter-spacing: .8px; color: var(--fg-dim); display: flex; align-items: baseline; gap: 10px; }

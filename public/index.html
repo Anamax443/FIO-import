@@ -120,6 +120,7 @@
           <span class="sep">|</span>
           <button id="bulkOn" data-i18n-title="bulkOnTip"><span data-i18n="bulkOn"></span></button>
           <button id="bulkOff" data-i18n-title="bulkOffTip"><span data-i18n="bulkOff"></span></button>
+          <button id="bulkDelete" class="danger" data-i18n-title="bulkDeleteTip"><span data-i18n="bulkDelete"></span></button>
         </div>
 
         <div class="table-wrap">
@@ -130,6 +131,7 @@
                 <th data-i18n="colSource"></th>
                 <th data-i18n="colStatus"></th>
                 <th data-i18n="colDate"></th>
+                <th data-i18n="colCategory"></th>
                 <th class="num" data-i18n="colAmount"></th>
                 <th data-i18n="colMessage"></th>
               </tr>
@@ -158,6 +160,7 @@
                   </select>
                 </th>
                 <th><input type="search" id="fDate" data-i18n-placeholder="fDatePh" data-i18n-title="fDateTip"></th>
+                <th><select id="fCat" data-i18n-title="fCatTip"></select></th>
                 <th class="num">
                   <div class="minmax">
                     <input type="number" id="fMin" step="0.01" data-i18n-placeholder="fMinPh" data-i18n-title="fAmountTip">

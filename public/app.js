@@ -83,7 +83,7 @@ function fmt(n) {
 
 /* ---------- render tabulky ---------- */
 
-const FILTER_IDS = ['fInclude', 'fSource', 'fStatus', 'fDate', 'fMin', 'fMax', 'fText', 'fMandatory'];
+const FILTER_IDS = ['fInclude', 'fSource', 'fStatus', 'fDate', 'fCat', 'fMin', 'fMax', 'fText', 'fMandatory'];
 
 /** Vyhledávání bez ohledu na diakritiku a velikost písmen. */
 function fold(s) {
@@ -95,6 +95,7 @@ function visibleRows() {
   const src = $('fSource').value;
   const status = $('fStatus').value;
   const date = $('fDate').value.trim();
+  const cat = $('fCat').value;
   const min = $('fMin').value === '' ? null : Number($('fMin').value);
   const max = $('fMax').value === '' ? null : Number($('fMax').value);
   const text = fold($('fText').value.trim());
@@ -106,12 +107,28 @@ function visibleRows() {
     if (src && r.source !== src) return false;
     if (status && r.status !== status) return false;
     if (date && !(r.date_txn ?? '').includes(date)) return false;
+    if (cat && (r.kategorie ?? '—') !== cat) return false;
     if (min !== null && r.amount < min) return false;
     if (max !== null && r.amount > max) return false;
     if (mandatoryOnly && !r.mandatory) return false;
     if (text && !fold(`${r.message} ${r.merchant ?? ''} ${r.kategorie ?? ''}`).includes(text)) return false;
     return true;
   });
+}
+
+/** Nabídka kategorií se plní z dat — každá dávka má jiné. */
+function refreshCategoryFilter() {
+  const select = $('fCat');
+  const cats = [...new Set(rows.map((r) => r.kategorie ?? '—'))].sort((a, b) => a.localeCompare(b, 'cs'));
+  const options = ['', ...cats];
+  const current = select.value;
+
+  if (select.dataset.sig === options.join('|')) return;
+  select.dataset.sig = options.join('|');
+  select.innerHTML = options
+    .map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c === '' ? t.filterAll : c)}</option>`)
+    .join('');
+  select.value = options.includes(current) ? current : '';
 }
 
 function filtersActive() {
@@ -131,15 +148,16 @@ function render() {
   const list = visibleRows();
 
   if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--fg-dim)">${escapeHtml(t.noRows)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--fg-dim)">${escapeHtml(t.noRows)}</td></tr>`;
   } else if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--fg-dim)">${escapeHtml(t.noMatch)}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--fg-dim)">${escapeHtml(t.noMatch)}</td></tr>`;
     bindRowEvents();
   } else {
     tbody.innerHTML = list.map(rowHtml).join('');
     bindRowEvents();
   }
 
+  refreshCategoryFilter();
   $('shown').textContent = rows.length ? t.shown(list.length, rows.length) : '';
   $('clearFilters').disabled = !filtersActive();
   updateSummary();
@@ -154,6 +172,7 @@ function rowHtml(r) {
       <td class="keep"><span class="badge src">${escapeHtml(source)}</span></td>
       <td class="keep"><span class="badge ${r.status}">${r.status}</span></td>
       <td>${escapeHtml(r.date_txn ?? '')}</td>
+      <td>${escapeHtml(r.kategorie ?? '')}</td>
       <td class="num"><input type="number" step="0.01" class="amt" value="${r.amount}" title="${escapeHtml(t.amountTip)}"></td>
       <td>
         <input type="text" class="msgtext" value="${escapeHtml(r.message)}" title="${escapeHtml(t.messageTip)}">
@@ -379,6 +398,25 @@ function setupBulk() {
 
   $('bulkOff').addEventListener('click', () =>
     bulkEdit(function turnOff(r) { r.include = false; }, { needsText: false }));
+
+  // Smazání je nevratné, proto potvrzení a ochrana povinných plateb.
+  $('bulkDelete').addEventListener('click', () => {
+    const targets = visibleRows();
+    if (targets.length === 0) { showMessage(t.bulkNone, 'warn'); return; }
+
+    const removable = targets.filter((r) => !r.mandatory);
+    const keptMandatory = targets.length - removable.length;
+    if (removable.length === 0) { showMessage(t.bulkOnlyMandatory, 'warn'); return; }
+    if (!confirm(t.bulkDeleteConfirm(removable.length))) return;
+
+    const doomed = new Set(removable.map((r) => r.id));
+    rows = rows.filter((r) => !doomed.has(r.id));
+    render();
+    showMessage(
+      keptMandatory ? `${t.bulkDeleted(removable.length)} ${t.bulkKeptMandatory(keptMandatory)}` : t.bulkDeleted(removable.length),
+      keptMandatory ? 'warn' : 'ok',
+    );
+  });
 }
 
 /* ---------- akce ---------- */
