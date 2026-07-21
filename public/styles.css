@@ -85,6 +85,12 @@ tr.mandatory { border-left: 3px solid var(--accent); }
 
 .table-wrap { overflow-x: auto; max-height: 60vh; overflow-y: auto; }
 
+/* Filtry ve druhém řádku hlavičky */
+thead tr.filters th { position: sticky; top: 27px; background: var(--panel); padding: 4px 6px 8px; }
+thead tr.filters select, thead tr.filters input { width: 100%; padding: 3px 6px; font-size: 12px; font-weight: normal; text-transform: none; letter-spacing: 0; }
+thead tr.filters .minmax { display: flex; gap: 4px; }
+thead tr.filters .minmax input { width: 50%; text-align: right; }
+
 td input[type="text"], td input[type="number"] { width: 100%; background: transparent; border: 1px solid transparent; padding: 3px 4px; }
 td input[type="text"]:hover, td input[type="number"]:hover { border-color: var(--line); }
 td input[type="number"] { text-align: right; font-family: var(--mono); }

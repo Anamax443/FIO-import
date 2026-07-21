@@ -9,6 +9,7 @@
 import {
   asciiFold, buildMsg, colIndex, fingerprint, normAmount, parseCsv, parseIsoDate,
 } from '../util.js';
+import { guessNote } from '../merchantNote.js';
 import type { LineItem } from '../types.js';
 
 const ACCEPTED_TYPES = ['platba kartou', 'vyber z bankomatu', 'card payment', 'atm'];
@@ -46,6 +47,10 @@ export function parseRevolut(text: string): LineItem[] {
     const currency = (r[iCurrency] ?? 'CZK').trim();
     const merchant = (r[iDesc] ?? '').trim();
 
+    // Revolut nemá kategorii ani poznámku — odhadneme je z obchodníka,
+    // ať ve zprávě není u čerpačky i parkoviště shodně „nákup".
+    const guess = guessNote(merchant, r[iType]);
+
     const item: LineItem = {
       id: `rev-${i++}`,
       source: 'revolut',
@@ -54,8 +59,9 @@ export function parseRevolut(text: string): LineItem[] {
       mandatory: false,
       include: true,
       amount,
-      message: buildMsg({ poznamka: 'nákup', date_txn, merchant }),
+      message: buildMsg({ kategorie: guess.kategorie, poznamka: guess.poznamka, date_txn, merchant }),
       date_txn,
+      kategorie: guess.kategorie,
       merchant,
     };
 

@@ -166,6 +166,19 @@ export function parseCsv(text: string, delim: string): string[][] {
   return rows.filter((r) => r.some((c) => c.trim() !== ''));
 }
 
+/**
+ * Spadá datum transakce do zvoleného období? Meze jsou včetně a obě volitelné.
+ * Řádky bez data (pravidelné platby) projdou vždy — nevznikají z výpisu.
+ *
+ * Formát RRRR-MM-DD se dá porovnávat jako text, proto žádné Date objekty.
+ */
+export function inRange(dateTxn: string | undefined, from?: string, to?: string): boolean {
+  if (!dateTxn) return true;
+  if (from && dateTxn < from) return false;
+  if (to && dateTxn > to) return false;
+  return true;
+}
+
 /** Najde index sloupce podle libovolného z aliasů (bez diakritiky, case-insensitive). */
 export function colIndex(header: string[], ...aliases: string[]): number {
   const norm = (s: string) => asciiFold(s).toLowerCase().replace(/[^a-z0-9]/g, '');

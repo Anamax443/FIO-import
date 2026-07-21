@@ -24,6 +24,10 @@ function applyLang() {
     const value = t[el.dataset.i18nTitle];
     if (typeof value === 'string') el.title = value;
   }
+  for (const el of document.querySelectorAll('[data-i18n-placeholder]')) {
+    const value = t[el.dataset.i18nPlaceholder];
+    if (typeof value === 'string') el.placeholder = value;
+  }
   tickClock();
   render();
 }
@@ -66,20 +70,58 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
+/** Lokální datum jako RRRR-MM-DD (toISOString by posunul o časové pásmo). */
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function fmt(n) {
   return new Intl.NumberFormat(lang === 'cs' ? 'cs-CZ' : 'en-US', { minimumFractionDigits: 2 }).format(n);
 }
 
 /* ---------- render tabulky ---------- */
 
+const FILTER_IDS = ['fInclude', 'fSource', 'fStatus', 'fDate', 'fMin', 'fMax', 'fText', 'fMandatory'];
+
+/** Vyhledávání bez ohledu na diakritiku a velikost písmen. */
+function fold(s) {
+  return String(s).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+}
+
 function visibleRows() {
+  const inc = $('fInclude').value;
   const src = $('fSource').value;
   const status = $('fStatus').value;
+  const date = $('fDate').value.trim();
+  const min = $('fMin').value === '' ? null : Number($('fMin').value);
+  const max = $('fMax').value === '' ? null : Number($('fMax').value);
+  const text = fold($('fText').value.trim());
   const mandatoryOnly = $('fMandatory').checked;
-  return rows.filter((r) =>
-    (!src || r.source === src) &&
-    (!status || r.status === status) &&
-    (!mandatoryOnly || r.mandatory));
+
+  return rows.filter((r) => {
+    if (inc === 'on' && !r.include) return false;
+    if (inc === 'off' && r.include) return false;
+    if (src && r.source !== src) return false;
+    if (status && r.status !== status) return false;
+    if (date && !(r.date_txn ?? '').includes(date)) return false;
+    if (min !== null && r.amount < min) return false;
+    if (max !== null && r.amount > max) return false;
+    if (mandatoryOnly && !r.mandatory) return false;
+    if (text && !fold(`${r.message} ${r.merchant ?? ''} ${r.kategorie ?? ''}`).includes(text)) return false;
+    return true;
+  });
+}
+
+function filtersActive() {
+  return FILTER_IDS.some((id) => ($(id).type === 'checkbox' ? $(id).checked : $(id).value !== ''));
+}
+
+function clearFilters() {
+  for (const id of FILTER_IDS) {
+    if ($(id).type === 'checkbox') $(id).checked = false;
+    else $(id).value = '';
+  }
+  render();
 }
 
 function render() {
@@ -88,10 +130,16 @@ function render() {
 
   if (rows.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" style="color:var(--fg-dim)">${escapeHtml(t.noRows)}</td></tr>`;
+  } else if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--fg-dim)">${escapeHtml(t.noMatch)}</td></tr>`;
+    bindRowEvents();
   } else {
     tbody.innerHTML = list.map(rowHtml).join('');
     bindRowEvents();
   }
+
+  $('shown').textContent = rows.length ? t.shown(list.length, rows.length) : '';
+  $('clearFilters').disabled = !filtersActive();
   updateSummary();
 }
 
@@ -160,6 +208,8 @@ async function process() {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         date: $('date').value,
+        dateFrom: $('dateFrom').value || undefined,
+        dateTo: $('dateTo').value || undefined,
         fio: $('fio').value,
         revolut: $('revolut').value,
         historyCsv: $('historyCsv').value,
@@ -175,8 +225,9 @@ async function process() {
     render();
 
     const notes = [t.historyInfo(data.historySize)];
+    if (data.outOfRange > 0) notes.push(t.outOfRangeInfo(data.outOfRange));
     if (!data.aiUsed) notes.push(t.aiOff);
-    showMessage(notes.join(' '), 'ok');
+    showMessage(notes.join(' '), data.outOfRange > 0 ? 'warn' : 'ok');
   } catch (err) {
     showMessage(String(err.message ?? err), 'err');
   } finally {
@@ -328,7 +379,20 @@ function init() {
     render();
   });
 
-  for (const el of ['fSource', 'fStatus', 'fMandatory']) $(el).addEventListener('change', render);
+  // Nejčastější případ: rozúčtovává se minulý měsíc celý.
+  $('lastMonth').addEventListener('click', () => {
+    const due = $('date').value ? new Date(`${$('date').value}T00:00:00`) : new Date();
+    const from = new Date(due.getFullYear(), due.getMonth() - 1, 1);
+    const to = new Date(due.getFullYear(), due.getMonth(), 0);
+    $('dateFrom').value = isoDate(from);
+    $('dateTo').value = isoDate(to);
+  });
+
+  for (const id of FILTER_IDS) {
+    $(id).addEventListener('input', render);
+    $(id).addEventListener('change', render);
+  }
+  $('clearFilters').addEventListener('click', clearFilters);
 
   for (const input of document.querySelectorAll('input[type="file"][data-target]')) {
     input.addEventListener('change', async (e) => {

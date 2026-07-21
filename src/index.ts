@@ -14,6 +14,7 @@ import { parseHistoryCsv } from './parse/history.js';
 import { parsePrevXml, prevXmlToLedger } from './parse/prevXml.js';
 import { parseRevolut } from './parse/revolut.js';
 import { buildRecurring, RECURRING_TEMPLATE, type RecurringRow } from './recurring.js';
+import { inRange } from './util.js';
 import { buildXml, DEFAULT_CONSTANTS, validate, type XmlConstants } from './xml.js';
 import type { LedgerEntry, LineItem } from './types.js';
 
@@ -34,6 +35,9 @@ export interface Env {
 
 interface ProcessBody {
   date?: string;
+  /** Období transakcí (včetně mezí) — omezuje řádky z výpisů, ne pravidelné platby. */
+  dateFrom?: string;
+  dateTo?: string;
   fio?: string;
   revolut?: string;
   historyCsv?: string;
@@ -86,6 +90,11 @@ async function handleProcess(request: Request, env: Env): Promise<Response> {
     ...(body.revolut ? parseRevolut(body.revolut) : []),
   ];
 
+  // 1b) Období transakcí — výpis často pokrývá víc, než se má rozúčtovat.
+  const beforeRange = rows.length;
+  rows = rows.filter((r) => inRange(r.date_txn, body.dateFrom, body.dateTo));
+  const outOfRange = beforeRange - rows.length;
+
   // 2) AI vrstva (best-effort, neblokuje)
   if (body.useAi !== false) {
     rows = await classify(rows, env.ANTHROPIC_API_KEY);
@@ -110,6 +119,7 @@ async function handleProcess(request: Request, env: Env): Promise<Response> {
     date,
     rows: deduped,
     report,
+    outOfRange,
     historySize: history.length,
     aiUsed: body.useAi !== false && Boolean(env.ANTHROPIC_API_KEY),
   });

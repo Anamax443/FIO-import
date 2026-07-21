@@ -63,7 +63,9 @@ interface Classified {
 export async function classify(rows: LineItem[], apiKey: string | undefined): Promise<LineItem[]> {
   if (!apiKey) return rows;
 
-  const targets = rows.filter((r) => r.source === 'revolut' && !r.kategorie).slice(0, MAX_ITEMS);
+  // Revolut řádky mají jen odhad z názvu obchodníka (merchantNote.ts) — AI ho zpřesní.
+  // Fio řádky nesou kategorii i poznámku přímo z výpisu, ty se nepřepisují.
+  const targets = rows.filter((r) => r.source === 'revolut').slice(0, MAX_ITEMS);
   if (targets.length === 0) return rows;
 
   let result: Classified[];
