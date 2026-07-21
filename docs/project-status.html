@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FIO-import — stav projektu</title>
+<style>
+  :root { --bg:#0f1419; --panel:#171d24; --panel2:#1e262f; --line:#2b3540; --fg:#dbe3ea; --dim:#8b98a6; --accent:#4aa3df; --ok:#3fa66a; --warn:#d9a33c; --err:#d9534f; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.6 "Segoe UI",system-ui,sans-serif; }
+  .wrap { max-width:960px; margin:0 auto; padding:32px 22px 64px; }
+  h1 { font-size:24px; margin:0 0 2px; }
+  .meta { color:var(--dim); font-size:13px; margin-bottom:26px; }
+  h2 { font-size:16px; margin:32px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--line); }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin:18px 0 6px; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:6px; padding:14px 16px; }
+  .card .k { color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.7px; }
+  .card .v { font-size:22px; font-weight:600; margin-top:4px; font-family:"Cascadia Mono",Consolas,monospace; }
+  .card.ok .v { color:#6cd39a; } .card.warn .v { color:#e8bf72; }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th, td { text-align:left; padding:8px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.6px; }
+  .st { display:inline-block; padding:1px 9px; border-radius:10px; font-size:12px; white-space:nowrap; }
+  .st.done { background:#17402c; color:#6cd39a; }
+  .st.wip { background:#1c3a52; color:#79bde8; }
+  .st.todo { background:var(--panel2); color:var(--dim); }
+  .st.risk { background:#43331a; color:#e8bf72; }
+  .box { background:var(--panel); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:5px; padding:12px 16px; margin:14px 0; }
+  .box.warn { border-left-color:var(--warn); }
+  footer { color:var(--dim); font-size:12px; margin-top:44px; border-top:1px solid var(--line); padding-top:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>FIO-import — stav projektu</h1>
+<p class="meta">Osobní projekt · privátní repozitář · stav k 21. 7. 2026</p>
+
+<h2>Kde projekt je</h2>
+<div class="cards">
+  <div class="card ok"><div class="k">Jádro</div><div class="v">hotové</div></div>
+  <div class="card ok"><div class="k">Testy</div><div class="v">36 / 36</div></div>
+  <div class="card ok"><div class="k">Ověřeno živě</div><div class="v">ano</div></div>
+  <div class="card warn"><div class="k">Nasazeno</div><div class="v">zatím ne</div></div>
+</div>
+<p>Aplikace běží lokálně od začátku do konce: načte výpisy, odfiltruje už uplatněné náklady, dá tabulku ke kontrole a vygeneruje XML, které splňuje všechna tvrdě ověřená pravidla formátu Fio. Chybí nasazení do cloudu a ostrý běh na reálné měsíční dávce.</p>
+
+<h2>Proč to vzniklo</h2>
+<p>Rozúčtování domácích nákladů se dělalo ručně: projít dva výpisy, přepsat je do příkazů, uhlídat, aby se stejný náklad nestáhl podruhé (překryv období, náklad ve Fiu i Revolutu, opakovaný import). Ruční kontrola nad ~40 řádky měsíčně je zdlouhavá a chybová. Appka tuhle práci dělá za pár minut a duplicitu označí sama.</p>
+
+<h2>Milníky</h2>
+<table>
+  <tr><th>#</th><th>Milník</th><th>Stav</th><th>Poznámka</th></tr>
+  <tr><td>1</td><td>Zadání a ověřená vstupní data</td><td><span class="st done">hotovo</span></td><td>SPEC, vzorová data, akceptační kritéria</td></tr>
+  <tr><td>2</td><td>Jádro: normalizace, otisk, generátor XML</td><td><span class="st done">hotovo</span></td><td>sedí na referenční transakci znak po znaku</td></tr>
+  <tr><td>3</td><td>Parsery Fio / Revolut / historie / minulé XML</td><td><span class="st done">hotovo</span></td><td>včetně vícemenovosti a BOM/CRLF/středníků</td></tr>
+  <tr><td>4</td><td>Deduplikace</td><td><span class="st done">hotovo</span></td><td>3 stavy, počítání výskytů, shody se nemažou</td></tr>
+  <tr><td>5</td><td>Pravidelné platby + carry-over</td><td><span class="st done">hotovo</span></td><td>9 řádků / 8 314 Kč ověřeno</td></tr>
+  <tr><td>6</td><td>UI pro kontrolu a editaci</td><td><span class="st done">hotovo</span></td><td>filtry, živý součet, CS/EN</td></tr>
+  <tr><td>7</td><td>AI kategorizace (Claude Haiku)</td><td><span class="st done">hotovo</span></td><td>volitelná, při výpadku pipeline pokračuje</td></tr>
+  <tr><td>8</td><td>Nasazení do Cloudflare + D1</td><td><span class="st todo">zbývá</span></td><td>potřebuje účet, databázi a klíč</td></tr>
+  <tr><td>9</td><td>Ostrý běh na měsíční dávce</td><td><span class="st todo">zbývá</span></td><td>závěrečné ověření proti reálným výpisům</td></tr>
+</table>
+
+<h2>Co je ověřené a co ne</h2>
+<table>
+  <tr><th>Kritérium</th><th>Stav</th><th>Detail</th></tr>
+  <tr><td>Formát XML (CRLF, bez komentářů, pořadí polí)</td><td><span class="st done">ověřeno</span></td><td>kontrolováno na reálných bajtech vygenerovaného souboru</td></tr>
+  <tr><td>Referenční transakce</td><td><span class="st done">ověřeno</span></td><td>shoda znak po znaku s přijatým importem</td></tr>
+  <tr><td>Pravidelné platby: 9 řádků / 8 314 Kč</td><td><span class="st done">ověřeno</span></td><td>test i živý běh</td></tr>
+  <tr><td>Dedup Fio × Revolut a proti historii</td><td><span class="st done">ověřeno</span></td><td>živý běh na vzorových datech</td></tr>
+  <tr><td>Fio karta 36 řádků = 33 750,92 Kč</td><td><span class="st risk">neověřeno</span></td><td>chybí konkrétní výpis, ze kterého číslo pochází</td></tr>
+  <tr><td>Celkem 42 064,92 Kč / 45 příkazů</td><td><span class="st risk">neověřeno</span></td><td>totéž</td></tr>
+  <tr><td>11 shod Revolut × historie</td><td><span class="st risk">neověřeno</span></td><td>totéž</td></tr>
+</table>
+
+<div class="box warn">
+  <strong>Otevřený úkol:</strong> dodat reálné výpisy z července, na kterých ta tři čísla vznikla. Dokud neproběhnou, je hotové jádro ověřené na vzorových datech, ne na celé měsíční dávce.
+</div>
+
+<h2>Rizika a jak jsou ošetřená</h2>
+<table>
+  <tr><th>Riziko</th><th>Ošetření</th></tr>
+  <tr><td>Náklad se stáhne podruhé</td><td>Otisk datum+částka proti historii; po každé dávce se odeslané řádky zapíší do ledgeru.</td></tr>
+  <tr><td>Falešná shoda smaže legitimní nákup</td><td>Shoda se nikdy nemaže — jen předvyplní jako vyřazená; uživatel ji přebije jedním klikem.</td></tr>
+  <tr><td>Banka odmítne soubor</td><td>Pravidla formátu jsou v testech; validace před generováním hlásí problém dřív, než soubor vznikne.</td></tr>
+  <tr><td>Výpadek AI</td><td>Vrstva je best-effort — bez klíče, při chybě i timeoutu appka pokračuje bez ní.</td></tr>
+  <tr><td>Únik dat (čísla účtů, útraty)</td><td>Privátní repozitář; reálné výpisy a vygenerovaná XML jsou blokované v .gitignore.</td></tr>
+  <tr><td>Zapomenutá povinná platba</td><td>Mandatorní řádky jsou vždy předvyplněné, zvýrazněné a jdou vyřadit jen s potvrzením.</td></tr>
+</table>
+
+<h2>Náklady na provoz</h2>
+<p>Cloudflare Workers i D1 se v tomhle objemu vejdou do bezplatné hladiny. Jediná placená položka je AI kategorizace — model třídy Haiku, řádově desítky transakcí měsíčně, tedy zanedbatelné jednotky korun. Vypnutím zaškrtávátka jde na nulu.</p>
+
+<h2>Další krok</h2>
+<p>Nasadit do Cloudflare, založit databázi, naplnit ledger historií účtu příjemce a projet jednu reálnou měsíční dávku vedle dosavadního ručního postupu — porovnat výsledky, teprve pak přepnout naostro.</p>
+
+<footer>FIO-import · manažerský přehled</footer>
+</div>
+</body>
+</html>

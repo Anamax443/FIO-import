@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "fio-import",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  },
+  // database_id doplň po `npx wrangler d1 create fio-import` (viz docs/BUILD.md)
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "fio-import",
+      "database_id": "PLACEHOLDER-VYPLN-PO-VYTVORENI"
+    }
+  ],
+  "observability": { "enabled": true },
+  "vars": {
+    "ACCOUNT_FROM": "2401442781",
+    "ACCOUNT_TO": "2900203312",
+    "BANK_CODE": "2010",
+    "PAYMENT_TYPE": "431001"
+  }
+}

@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FIO-import — prezentace</title>
+<style>
+  :root { --bg:#0f1419; --panel:#171d24; --panel2:#1e262f; --line:#2b3540; --fg:#dbe3ea; --dim:#8b98a6; --accent:#4aa3df; --ok:#3fa66a; --warn:#d9a33c; --err:#d9534f; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 "Segoe UI",system-ui,sans-serif; }
+  .deck { max-width:900px; margin:0 auto; padding:24px 22px 72px; }
+  .slide { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:28px 30px; margin:18px 0; }
+  .slide h2 { margin:0 0 4px; font-size:20px; }
+  .slide .kicker { color:var(--accent); font-size:12px; text-transform:uppercase; letter-spacing:1.2px; margin-bottom:10px; }
+  .hero { text-align:center; padding:46px 30px; }
+  .hero h1 { font-size:34px; margin:0 0 8px; letter-spacing:-.5px; }
+  .hero p { color:var(--dim); font-size:17px; margin:0; }
+  ul { padding-left:20px; margin:10px 0; } li { margin:6px 0; }
+  .two { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  @media (max-width:700px) { .two { grid-template-columns:1fr; } }
+  .panel { background:var(--panel2); border:1px solid var(--line); border-radius:6px; padding:14px 16px; }
+  .panel h3 { margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:.8px; color:var(--dim); }
+  .big { font-family:"Cascadia Mono",Consolas,monospace; font-size:26px; font-weight:600; }
+  .ok { color:#6cd39a; } .bad { color:#f09a97; } .warn { color:#e8bf72; }
+  .flow { font-family:"Cascadia Mono",Consolas,monospace; font-size:13px; line-height:1.9; color:var(--dim); white-space:pre; overflow-x:auto; }
+  .flow b { color:var(--fg); }
+  .badge { display:inline-block; padding:1px 9px; border-radius:10px; font-size:12px; margin-right:4px; }
+  .NEW { background:#17402c; color:#6cd39a; } .CLAIMED { background:#43331a; color:#e8bf72; } .DUP { background:#452226; color:#f09a97; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:7px 8px; border-bottom:1px solid var(--line); }
+  th { color:var(--dim); font-size:12px; text-transform:uppercase; letter-spacing:.6px; }
+  footer { color:var(--dim); font-size:12px; text-align:center; margin-top:30px; }
+</style>
+</head>
+<body>
+<div class="deck">
+
+  <div class="slide hero">
+    <h1>FIO-import</h1>
+    <p>Z bankovních výpisů na hromadný příkaz do banky — bez toho, aby se stejný náklad stáhl podruhé.</p>
+  </div>
+
+  <div class="slide">
+    <div class="kicker">Problém</div>
+    <h2>Rozúčtování domácích nákladů bylo ruční práce</h2>
+    <div class="two">
+      <div>
+        <ul>
+          <li>Dva zdroje výpisů — Fio a Revolut, každý jiný formát.</li>
+          <li>K tomu devět pravidelných plateb, které se každý měsíc opisují.</li>
+          <li>Kolem <strong>45 příkazů měsíčně</strong>, každý ručně.</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Nejdražší chyba</h3>
+        <p style="margin:0">Stáhnout jeden náklad <strong class="bad">dvakrát</strong> — kvůli překryvu období, protože je ve Fiu i v Revolutu, nebo protože se import pustil znovu.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="kicker">Řešení</div>
+    <h2>Pipeline, na jejímž konci je hotový soubor pro banku</h2>
+    <div class="flow">Fio výpis     ─┐
+Revolut výpis ─┼─► <b>normalizace</b> ─► <b>DEDUPLIKACE</b> ─► <b>KONTROLA</b> ─► <b>generování</b> ─► import do Fio
+Pravidelné ───┘   (společný      (proti historii   (ruční krok)   (jen označené)
+                   line item)      už uplatněných)</div>
+    <p style="margin-top:14px">Člověk zůstává v rozhodovací roli: appka připraví návrh a označí podezřelé, poslední slovo má uživatel.</p>
+  </div>
+
+  <div class="slide">
+    <div class="kicker">Jádro hodnoty</div>
+    <h2>Deduplikace, která si nedovolí smazat nákup</h2>
+    <div class="two">
+      <div>
+        <p>Otisk nákladu je <strong>datum transakce + částka</strong>. Obchodník v klíči záměrně není — texty se mezi zdroji liší („Lidl" × „nákup Lidl", „MOL" × „Malíkov PHM MOL").</p>
+        <p><span class="badge NEW">NEW</span><span class="badge CLAIMED">ALREADY_CLAIMED</span><span class="badge DUP">DUPLICATE_IN_BATCH</span></p>
+      </div>
+      <div class="panel">
+        <h3>Pravidlo, na kterém to stojí</h3>
+        <p style="margin:0">Shoda se <strong class="ok">nikdy nemaže</strong>. Jen se předvyplní jako vyřazená. Dva nákupy v Lidlu týž den za stejnou částku jsou legitimní — a jedním klikem se vrátí do dávky.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="kicker">Tvrdá pravidla</div>
+    <h2>Soubor, který banka přijme na první pokus</h2>
+    <p>Formát je ověřený na skutečně přijatém importu a zafixovaný v testech:</p>
+    <table>
+      <tr><th>Pravidlo</th><th>Proč</th></tr>
+      <tr><td>Žádné XML komentáře</td><td>banka soubor odmítne</td></tr>
+      <tr><td>Konce řádků CRLF, UTF-8, tabulátory</td><td>ověřeno na přijatém importu</td></tr>
+      <tr><td>Desetinná tečka, celá čísla bez desetin</td><td>parser banky je striktní</td></tr>
+      <tr><td>Pevné pořadí elementů, zpráva == poznámka</td><td>totéž</td></tr>
+    </table>
+    <p style="margin-top:12px">Před generováním běží validace: kontrolní součet, počty podle zdroje, kompletnost povinných plateb a limit délky zprávy.</p>
+  </div>
+
+  <div class="slide">
+    <div class="kicker">Stav</div>
+    <h2>Jádro ověřené, zbývá nasadit</h2>
+    <div class="two">
+      <div class="panel">
+        <h3>Hotové</h3>
+        <p class="big ok">36 / 36</p>
+        <p style="margin:6px 0 0">testů na rizikovém jádru — parsery, otisk, dedup, formát XML. Celá pipeline proběhla živě od výpisu po platný soubor.</p>
+      </div>
+      <div class="panel">
+        <h3>Zbývá</h3>
+        <p class="big warn">2 kroky</p>
+        <p style="margin:6px 0 0">nasadit do Cloudflare s databází a projet jednu reálnou měsíční dávku vedle dosavadního ručního postupu.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide">
+    <div class="kicker">Technologie</div>
+    <h2>Malá appka, žádná infrastruktura k údržbě</h2>
+    <ul>
+      <li><strong>Cloudflare Workers</strong> — jeden Worker obsluhuje API i uživatelské rozhraní.</li>
+      <li><strong>D1</strong> — databáze historie uplatněných nákladů, šablony a auditu dávek.</li>
+      <li><strong>Claude Haiku</strong> — dopisuje kategorie k Revolut transakcím; volitelné, výpadek appku nezastaví.</li>
+      <li>Provoz se vejde do bezplatné hladiny, AI stojí jednotky korun měsíčně.</li>
+    </ul>
+  </div>
+
+  <footer>FIO-import · prezentační přehled</footer>
+</div>
+</body>
+</html>

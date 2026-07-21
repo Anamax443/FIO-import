@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FIO-import</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header>
+    <h1 data-i18n="title">FIO-import</h1>
+    <span class="sub" data-i18n="subtitle"></span>
+    <span class="spacer"></span>
+    <label for="lang" class="hidden" data-i18n="lang"></label>
+    <select id="lang" data-i18n-title="langTip">
+      <option value="cs">Čeština</option>
+      <option value="en">English</option>
+    </select>
+  </header>
+
+  <main>
+    <div id="message"></div>
+
+    <section>
+      <h2 data-i18n="inputs">Vstupy</h2>
+
+      <div class="row" style="margin-bottom:14px">
+        <div>
+          <label for="date" data-i18n="date"></label>
+          <input type="date" id="date" data-i18n-title="dateTip">
+        </div>
+        <div style="align-self:end">
+          <label><input type="checkbox" id="useAi" checked data-i18n-title="useAiTip">
+            <span data-i18n="useAi"></span></label>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <label for="fio" data-i18n="fio"></label>
+          <textarea id="fio" data-i18n-title="fioTip"></textarea>
+          <input type="file" accept=".txt,.csv,.tsv" data-target="fio">
+        </div>
+        <div>
+          <label for="revolut" data-i18n="revolut"></label>
+          <textarea id="revolut" data-i18n-title="revolutTip"></textarea>
+          <input type="file" accept=".csv" data-target="revolut">
+        </div>
+        <div>
+          <label for="historyCsv" data-i18n="history"></label>
+          <textarea id="historyCsv" data-i18n-title="historyTip"></textarea>
+          <input type="file" accept=".csv" data-target="historyCsv">
+        </div>
+        <div>
+          <label for="prevXml" data-i18n="prevXml"></label>
+          <textarea id="prevXml" data-i18n-title="prevXmlTip"></textarea>
+          <input type="file" accept=".xml" data-target="prevXml">
+        </div>
+      </div>
+
+      <div class="row end" style="margin-top:14px">
+        <button id="clear" data-i18n-title="clearTip"><span data-i18n="clear"></span></button>
+        <button id="process" class="primary" data-i18n-title="processTip"><span data-i18n="process"></span></button>
+      </div>
+    </section>
+
+    <section>
+      <h2 data-i18n="review">Kontrola před generováním</h2>
+
+      <div class="row" style="margin-bottom:10px">
+        <div>
+          <label for="fSource" data-i18n="filterSource"></label>
+          <select id="fSource">
+            <option value="" data-i18n="filterAll"></option>
+            <option value="fio">fio</option>
+            <option value="revolut">revolut</option>
+            <option value="pravidelna">pravidelná</option>
+          </select>
+        </div>
+        <div>
+          <label for="fStatus" data-i18n="filterStatus"></label>
+          <select id="fStatus">
+            <option value="" data-i18n="filterAll"></option>
+            <option value="NEW">NEW</option>
+            <option value="ALREADY_CLAIMED">ALREADY_CLAIMED</option>
+            <option value="DUPLICATE_IN_BATCH">DUPLICATE_IN_BATCH</option>
+          </select>
+        </div>
+        <div style="align-self:end">
+          <label><input type="checkbox" id="fMandatory" data-i18n-title="onlyMandatoryTip">
+            <span data-i18n="onlyMandatory"></span></label>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-i18n="colInclude"></th>
+              <th data-i18n="colSource"></th>
+              <th data-i18n="colStatus"></th>
+              <th data-i18n="colDate"></th>
+              <th class="num" data-i18n="colAmount"></th>
+              <th data-i18n="colMessage"></th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+
+      <div class="summary">
+        <span class="item"><span class="label" data-i18n="sumCount"></span> <b id="sumCount">0</b></span>
+        <span class="item"><span class="label" data-i18n="sumTotal"></span> <b id="sumTotal">0</b> CZK</span>
+        <span class="item"><span class="label" data-i18n="sumClaimed"></span> <b id="sumClaimed">0</b></span>
+        <span class="item"><span class="label" data-i18n="sumDup"></span> <b id="sumDup">0</b></span>
+        <span class="spacer" style="flex:1"></span>
+        <button id="generate" class="primary" disabled data-i18n-title="generateTip">
+          <span data-i18n="generate"></span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span data-i18n="commit"></span>: <span id="commit">…</span>
+  </footer>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
