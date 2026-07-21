@@ -110,7 +110,15 @@ td input[type="number"] { text-align: right; font-family: var(--mono); }
 .msg { padding: 9px 12px; border-radius: 4px; margin-bottom: 12px; font-size: 13px; }
 .msg.err { background: #3a1e1e; border: 1px solid #6b2f2c; color: #f3b6b4; }
 .msg.ok { background: #17331f; border: 1px solid #2c5a3a; color: #9cd9b3; }
+.msg.warn { background: #3a2f19; border: 1px solid #6b562c; color: #e8cf94; }
 .msg ul { margin: 6px 0 0; padding-left: 18px; }
+
+/* Přetahování souborů */
+.dropzone { border: 1px dashed transparent; border-radius: 6px; padding: 6px; margin: -6px; transition: border-color .12s, background .12s; }
+.dropzone.dragover { border-color: var(--accent); background: #17293a; }
+.dropzone.dragover textarea { border-color: var(--accent); }
+.filerow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.hint { color: var(--fg-dim); font-size: 11px; }
 
 footer { padding: 12px 20px; color: var(--fg-dim); font-size: 11px; border-top: 1px solid var(--line); }
 .hidden { display: none; }

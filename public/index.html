@@ -36,25 +36,37 @@
       </div>
 
       <div class="grid">
-        <div>
+        <div class="dropzone" data-drop="fio">
           <label for="fio" data-i18n="fio"></label>
           <textarea id="fio" data-i18n-title="fioTip"></textarea>
-          <input type="file" accept=".txt,.csv,.tsv" data-target="fio">
+          <div class="filerow">
+            <input type="file" accept=".txt,.csv,.tsv" multiple data-target="fio">
+            <span class="hint" data-i18n="dropHint"></span>
+          </div>
         </div>
-        <div>
+        <div class="dropzone" data-drop="revolut">
           <label for="revolut" data-i18n="revolut"></label>
           <textarea id="revolut" data-i18n-title="revolutTip"></textarea>
-          <input type="file" accept=".csv" data-target="revolut">
+          <div class="filerow">
+            <input type="file" accept=".csv" multiple data-target="revolut">
+            <span class="hint" data-i18n="dropHint"></span>
+          </div>
         </div>
-        <div>
+        <div class="dropzone" data-drop="historyCsv">
           <label for="historyCsv" data-i18n="history"></label>
           <textarea id="historyCsv" data-i18n-title="historyTip"></textarea>
-          <input type="file" accept=".csv" data-target="historyCsv">
+          <div class="filerow">
+            <input type="file" accept=".csv" multiple data-target="historyCsv">
+            <span class="hint" data-i18n="dropHint"></span>
+          </div>
         </div>
-        <div>
+        <div class="dropzone" data-drop="prevXml">
           <label for="prevXml" data-i18n="prevXml"></label>
           <textarea id="prevXml" data-i18n-title="prevXmlTip"></textarea>
-          <input type="file" accept=".xml" data-target="prevXml">
+          <div class="filerow">
+            <input type="file" accept=".xml" multiple data-target="prevXml">
+            <span class="hint" data-i18n="dropHint"></span>
+          </div>
         </div>
       </div>
 

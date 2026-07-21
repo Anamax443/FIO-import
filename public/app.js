@@ -1,3 +1,4 @@
+import { detectKind } from './detect.js';
 import { STRINGS } from './i18n.js';
 
 const $ = (id) => document.getElementById(id);
@@ -216,6 +217,63 @@ async function generate() {
   }
 }
 
+/* ---------- soubory: drag & drop + rozpoznání typu ---------- */
+
+async function loadFiles(files, fallbackTarget) {
+  const placed = [];
+
+  for (const file of files) {
+    const text = await file.text();
+    const detected = detectKind(text, file.name);
+    const target = detected ?? fallbackTarget;
+    if (!target || !$(target)) continue;
+
+    $(target).value = text;
+    placed.push({ file: file.name, target, moved: Boolean(detected) && detected !== fallbackTarget });
+  }
+
+  if (placed.length === 0) return;
+  const moved = placed.filter((p) => p.moved);
+  showMessage(
+    placed.map((p) => `${p.file} → ${t[fieldKey(p.target)]}`).join(' · '),
+    moved.length ? 'warn' : 'ok',
+  );
+}
+
+function fieldKey(target) {
+  return { fio: 'fio', revolut: 'revolut', historyCsv: 'history', prevXml: 'prevXml' }[target] ?? target;
+}
+
+function setupDropZones() {
+  // Bez toho prohlížeč soubor prostě otevře místo předání stránce.
+  for (const type of ['dragover', 'drop']) {
+    document.addEventListener(type, (e) => e.preventDefault());
+  }
+
+  for (const zone of document.querySelectorAll('[data-drop]')) {
+    const target = zone.dataset.drop;
+
+    zone.addEventListener('dragenter', () => zone.classList.add('dragover'));
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', (e) => {
+      if (!zone.contains(e.relatedTarget)) zone.classList.remove('dragover');
+    });
+
+    zone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      zone.classList.remove('dragover');
+
+      const files = [...(e.dataTransfer?.files ?? [])];
+      if (files.length) { await loadFiles(files, target); return; }
+
+      // Přetažený text (např. výběr z internetového bankovnictví).
+      const text = e.dataTransfer?.getData('text/plain');
+      if (text) $(detectKind(text) ?? target).value = text;
+    });
+  }
+}
+
 /* ---------- start ---------- */
 
 function init() {
@@ -236,10 +294,12 @@ function init() {
 
   for (const input of document.querySelectorAll('input[type="file"][data-target]')) {
     input.addEventListener('change', async (e) => {
-      const file = e.target.files?.[0];
-      if (file) $(e.target.dataset.target).value = await file.text();
+      await loadFiles([...(e.target.files ?? [])], e.target.dataset.target);
+      e.target.value = ''; // ať jde tentýž soubor vybrat znovu
     });
   }
+
+  setupDropZones();
 
   fetch('/api/version')
     .then((r) => r.json())
