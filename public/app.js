@@ -438,6 +438,7 @@ async function process() {
         historyCsv: inputValue('historyCsv'),
         prevXml: inputValue('prevXml'),
         useAi: $('useAi').checked,
+        useRecurring: $('useRecurring').checked,
       }),
     });
     const data = await res.json();
@@ -448,6 +449,7 @@ async function process() {
     render();
 
     const notes = [t.historyInfo(data.historySize)];
+    if (data.withRecurring === false) notes.push(t.recurringOff);
     if (data.fromMovements > 0) notes.push(t.fromMovementsInfo(data.fromMovements));
     if (data.outOfRange > 0) notes.push(t.outOfRangeInfo(data.outOfRange));
     if (!data.aiUsed) notes.push(t.aiOff);

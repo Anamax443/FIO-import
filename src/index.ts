@@ -43,6 +43,8 @@ interface ProcessBody {
   historyCsv?: string;
   prevXml?: string;
   useAi?: boolean;
+  /** Přidat do dávky pravidelné a povinné platby? Výchozí ano. */
+  useRecurring?: boolean;
 }
 
 interface GenerateBody {
@@ -110,10 +112,13 @@ async function handleProcess(request: Request, env: Env): Promise<Response> {
     rows = await classify(rows, env.ANTHROPIC_API_KEY);
   }
 
-  // 3) Pravidelné platby + carry-over částek z minulého XML
-  const prev = body.prevXml ? parsePrevXml(body.prevXml) : [];
-  const template = await loadTemplate(env);
-  rows = [...rows, ...buildRecurring({ date, template, prev })];
+  // 3) Pravidelné platby + carry-over částek z minulého XML (volitelné)
+  const withRecurring = body.useRecurring !== false;
+  if (withRecurring) {
+    const prev = body.prevXml ? parsePrevXml(body.prevXml) : [];
+    const template = await loadTemplate(env);
+    rows = [...rows, ...buildRecurring({ date, template, prev })];
+  }
 
   // 4) Historie už uplatněných nákladů: D1 ledger + nahrané CSV/XML v requestu
   const history: LedgerEntry[] = [
@@ -130,6 +135,7 @@ async function handleProcess(request: Request, env: Env): Promise<Response> {
     rows: deduped,
     report,
     outOfRange,
+    withRecurring,
     fromMovements: movements.expenses.length,
     historySize: history.length,
     aiUsed: body.useAi !== false && Boolean(env.ANTHROPIC_API_KEY),
