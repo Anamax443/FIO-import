@@ -149,6 +149,16 @@ details#tplBox > summary { cursor: pointer; font-size: 13px; text-transform: upp
 details#tplBox > summary:hover { color: var(--fg); }
 details#tplBox[open] > summary { margin-bottom: 6px; }
 #tplTable input[type="text"], #tplTable input[type="number"] { width: 100%; }
+.tplPreview {
+  display: flex; gap: 10px; align-items: baseline; justify-content: space-between;
+  margin-top: 4px; padding-left: 5px; border-left: 2px solid var(--line);
+  font-family: var(--mono); font-size: 11.5px; color: var(--fg-dim);
+}
+.tplPreview .txt { color: var(--ok); }
+.tplPreview .len { white-space: nowrap; }
+.tplPreview.over { border-left-color: var(--err); }
+.tplPreview.over .txt, .tplPreview.over .len { color: var(--err); }
+.warn-text { color: var(--warn) !important; }
 #tplTable .tplDel { background: none; border: none; color: var(--fg-dim); padding: 2px 4px; }
 #tplTable .tplDel:hover { color: var(--err); background: none; }
 

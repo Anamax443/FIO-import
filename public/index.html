@@ -190,6 +190,17 @@
         <h2 data-i18n="tplTitle">Pravidelné a povinné platby</h2>
         <p class="hint" data-i18n="tplHelp" style="margin:0 0 14px"></p>
 
+        <div class="row" style="margin-bottom:14px">
+          <div>
+            <label for="tplMonth" data-i18n="tplMonth"></label>
+            <input type="month" id="tplMonth" data-i18n-title="tplMonthTip">
+          </div>
+          <div style="align-self:end">
+            <button id="tplMonthNow" data-i18n-title="tplMonthNowTip"><span data-i18n="tplMonthNow"></span></button>
+          </div>
+          <span class="hint" id="tplMonthNote" style="align-self:end; padding-bottom:8px"></span>
+        </div>
+
         <div class="cards">
           <div class="card"><div class="k" data-i18n="tplCardCount"></div><div class="v" id="tplCount">0</div></div>
           <div class="card"><div class="k" data-i18n="tplCardMandatory"></div><div class="v" id="tplMandatoryCount">0</div></div>
@@ -205,13 +216,16 @@
                 <th data-i18n="tplText"></th>
                 <th style="width:44px"></th>
               </tr>
+              <tr>
+                <th colspan="4" class="hint" style="font-weight:normal; text-transform:none; letter-spacing:0" data-i18n="tplPreviewHead"></th>
+              </tr>
             </thead>
             <tbody id="tplRows"></tbody>
           </table>
         </div>
 
         <div class="summary">
-          <span class="item"><span class="label" data-i18n="tplPreview"></span> <b id="tplSummary"></b></span>
+          <span class="item"><span class="label" data-i18n="tplMonthTotal"></span> <b id="tplSummary"></b></span>
           <span class="spacer" style="flex:1"></span>
           <button id="tplAdd" data-i18n-title="tplAddTip"><span data-i18n="tplAdd"></span></button>
           <button id="tplDefaults" data-i18n-title="tplDefaultsTip"><span data-i18n="tplDefaults"></span></button>

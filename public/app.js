@@ -213,15 +213,39 @@ async function loadTemplate(useDefaults = false) {
   }
 }
 
+/** Měsíc a rok zvolený pro náhled — výchozí je aktuální měsíc. */
+function previewMonth() {
+  const value = $('tplMonth').value || isoDate(new Date()).slice(0, 7);
+  const [rok, mes] = value.split('-');
+  return { rok, mesic: MONTHS[Number(mes) - 1] ?? '', value };
+}
+
+function renderRow(row) {
+  const { mesic, rok } = previewMonth();
+  return row.template.replace(/\{mesic\}/g, mesic).replace(/\{rok\}/g, rok);
+}
+
 function renderTemplate() {
-  $('tplRows').innerHTML = template.map((row, i) => `
+  const rendered = template.map(renderRow);
+
+  $('tplRows').innerHTML = template.map((row, i) => {
+    const preview = rendered[i];
+    const over = preview.length > 140;
+    return `
     <tr data-i="${i}"${row.mandatory ? ' class="mandatory"' : ''}>
       <td class="keep"><label><input type="checkbox" class="tplM" ${row.mandatory ? 'checked' : ''}>
         <span class="hint">${escapeHtml(t.tplMandatoryShort)}</span></label></td>
       <td class="num"><input type="number" step="0.01" class="tplA" value="${row.amount}"></td>
-      <td><input type="text" class="tplT" value="${escapeHtml(row.template)}"></td>
+      <td>
+        <input type="text" class="tplT" value="${escapeHtml(row.template)}">
+        <div class="tplPreview${over ? ' over' : ''}">
+          <span class="txt">${escapeHtml(preview)}</span>
+          <span class="len">${t.tplChars(preview.length)}</span>
+        </div>
+      </td>
       <td><button class="tplDel" type="button" title="${escapeHtml(t.tplDelete)}">✕</button></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 
   for (const tr of $('tplRows').querySelectorAll('tr[data-i]')) {
     const row = template[Number(tr.dataset.i)];
@@ -234,7 +258,14 @@ function renderTemplate() {
       const v = Number(String(e.target.value).replace(',', '.'));
       if (Number.isFinite(v)) { row.amount = v; updateTplSummary(); }
     });
-    tr.querySelector('.tplT').addEventListener('input', (e) => { row.template = e.target.value; });
+    tr.querySelector('.tplT').addEventListener('input', (e) => {
+      row.template = e.target.value;
+      const preview = renderRow(row);
+      const box = tr.querySelector('.tplPreview');
+      box.querySelector('.txt').textContent = preview;
+      box.querySelector('.len').textContent = t.tplChars(preview.length);
+      box.classList.toggle('over', preview.length > 140);
+    });
     tr.querySelector('.tplDel').addEventListener('click', () => {
       template.splice(Number(tr.dataset.i), 1);
       renderTemplate();
@@ -247,19 +278,25 @@ function renderTemplate() {
 function updateTplSummary() {
   const total = template.reduce((sum, r) => sum + (Number(r.amount) || 0), 0);
   const mandatory = template.filter((r) => r.mandatory).length;
+  const { mesic, rok } = previewMonth();
 
   $('tplCount').textContent = template.length;
   $('tplMandatoryCount').textContent = mandatory;
   $('tplTotalCard').textContent = `${fmt(Math.round(total * 100) / 100)} CZK`;
+  $('tplSummary').textContent = `${mesic} ${rok} — ${fmt(Math.round(total * 100) / 100)} CZK`;
 
-  // Náhled, jak bude text vypadat po doplnění měsíce podle data splatnosti.
-  const due = $('date').value || isoDate(new Date());
-  const [rok, mes] = due.split('-');
-  const mesic = MONTHS[Number(mes) - 1] ?? '';
-  const first = template[0];
-  $('tplSummary').textContent = first
-    ? first.template.replace(/\{mesic\}/g, mesic).replace(/\{rok\}/g, rok)
-    : '—';
+  // Skutečná dávka jede podle data splatnosti; když se liší, je to vidět.
+  const due = $('date').value;
+  const dueMonth = due ? due.slice(0, 7) : '';
+  const note = $('tplMonthNote');
+  if (dueMonth && dueMonth !== previewMonth().value) {
+    const [dRok, dMes] = dueMonth.split('-');
+    note.textContent = t.tplMonthDiffers(MONTHS[Number(dMes) - 1] ?? '', dRok);
+    note.classList.add('warn-text');
+  } else {
+    note.textContent = t.tplMonthSame;
+    note.classList.remove('warn-text');
+  }
 }
 
 const MONTHS = ['leden', 'únor', 'březen', 'duben', 'květen', 'červen',
@@ -283,6 +320,14 @@ async function saveTemplate() {
 }
 
 function setupTemplate() {
+  // Výchozí je aktuální měsíc.
+  $('tplMonth').value = isoDate(new Date()).slice(0, 7);
+  $('tplMonth').addEventListener('change', renderTemplate);
+  $('tplMonthNow').addEventListener('click', () => {
+    $('tplMonth').value = isoDate(new Date()).slice(0, 7);
+    renderTemplate();
+  });
+
   $('tplAdd').addEventListener('click', () => {
     template.push({ ord: template.length + 1, amount: 0, mandatory: false, template: `${t.tplNewText} {mesic} {rok}` });
     renderTemplate();
