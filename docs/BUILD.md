@@ -75,7 +75,9 @@ curl http://127.0.0.1:8788/api/version
 
 ## 6. Nasazení do produkce
 
-- cíl: Cloudflare Workers (účet **bass443**, stejně jako job-watch / aukce)
+**Živě běží:** `https://fio-import.bass443.workers.dev` (účet **bass443**, D1 `fio-import`
+v regionu EEUR, id `c082caa7-9624-43b3-bf77-7f1c5e8db94c`).
+
 - `npm run deploy` (= `wrangler deploy`)
 - commit hash do buildu: nasazuj s `COMMIT_SHA` (patička UI a `/api/version` ho ukazují)
   ```
@@ -84,11 +86,40 @@ curl http://127.0.0.1:8788/api/version
 - ověření po nasazení: otevřít URL, vygenerovat testovací dávku a zkontrolovat,
   že XML má CRLF, 0 komentářů a sedí kontrolní součet; **uvést živý commit hash**
 
-## 7. Certifikáty / přístupy / práva
+## 7. Přístup k aplikaci (brána)
 
+API je **fail-closed** — bez nakonfigurované brány nevrátí nic (kromě `/api/version`).
+Důvod: veřejná URL by jinak vydala čísla účtů, adresu a odběrné místo elektřiny.
+
+### Varianta A — Cloudflare Access (doporučená, „přihlášení přes Cloudflare")
+
+1. Zero Trust → **Access → Applications → Add an application → Self-hosted**
+2. doména: `fio-import.bass443.workers.dev`
+3. politika: *Allow* → **Emails** → tvůj e-mail
+4. z detailu aplikace zkopíruj **Application Audience (AUD) Tag** a název týmu
+   (`<tym>.cloudflareaccess.com`)
+5. doplň do `wrangler.jsonc` → `vars` a nasaď:
+   ```jsonc
+   "ACCESS_TEAM_DOMAIN": "<tym>",
+   "ACCESS_AUD": "<aud tag>"
+   ```
+
+Worker si JWT z Accessu **ověřuje sám** (JWKS, RS256, kontrola `aud`/`iss`/`exp`),
+takže Access nejde obejít přímým voláním `*.workers.dev`.
+
+### Varianta B — sdílený token (záložní, aktivní teď)
+
+```
+npx wrangler secret put APP_TOKEN
+```
+UI se na token doptá při prvním volání API a uloží si ho do `localStorage`.
+Až bude Access hotový, token se dá zrušit: `npx wrangler secret delete APP_TOKEN`.
+
+### Ostatní
+
+- `ANTHROPIC_API_KEY` — secret pro AI vrstvu (volitelný)
 - Cloudflare API token pro CI (pokud se CI zapne) — scope Workers Scripts:Edit + D1:Edit
 - žádné podpisové certifikáty, žádné servisní účty
-- `ANTHROPIC_API_KEY` — jediný secret
 
 ## 8. Ověřovací postup pro budoucí změny jádra
 

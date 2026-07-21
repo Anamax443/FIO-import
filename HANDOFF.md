@@ -2,6 +2,25 @@
 
 Append-only. Nejnovější záznam nahoru. Slouží k pokračování z jiného počítače / po pauze.
 
+## 2026-07-21 — nasazeno na Cloudflare + brána k API
+
+**Živě:** `https://fio-import.bass443.workers.dev` (účet bass443), commit `7441ea9`.
+D1 `fio-import` (EEUR, `c082caa7-9624-43b3-bf77-7f1c5e8db94c`), schéma aplikované.
+
+**Brána (`src/auth.ts`)** — API je fail-closed, protože veřejná URL by vydala čísla účtů,
+adresu a odběrné místo elektřiny:
+- **Cloudflare Access** — Worker si ověřuje JWT sám (JWKS, RS256, `aud`/`iss`/`exp`),
+  takže Access nejde obejít přímým voláním `*.workers.dev`. Zapne se doplněním
+  `ACCESS_TEAM_DOMAIN` + `ACCESS_AUD` do `vars` — postup v [BUILD.md](docs/BUILD.md) §7.
+  **Zatím nenastaveno** — moje wrangler oprávnění na Zero Trust nesahají (jen workers).
+- **Sdílený token** `APP_TOKEN` — aktivní záložní cesta, UI se na něj doptá a uloží ho
+  do `localStorage`. Po zprovoznění Accessu jde zrušit.
+
+**Ověřeno v produkci:** `/api/template` bez tokenu → 401, s tokenem → 200; celý řetězec
+process → generate → 10 příkazů / 9 308,72 CZK; **D1 ledger se učí** — po vygenerování
+dávky je týž náklad při dalším běhu `ALREADY_CLAIMED`. Testovací data z D1 smazána
+(ledger i batches jsou prázdné).
+
 ## 2026-07-21 — zrušena česká výjimka v ASCII-foldu
 
 Na přání uživatele se u **obchodníků** foldne veškerá diakritika včetně české
