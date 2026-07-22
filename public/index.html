@@ -33,6 +33,8 @@
     <button class="tab" data-tab="prehled" data-i18n-title="tabDashTip"><span data-i18n="tabDash"></span></button>
     <button class="tab" data-tab="historie" data-i18n-title="tabHistoryTip"><span data-i18n="tabHistory"></span></button>
     <button class="tab" data-tab="pravidelne" data-i18n-title="tabRecurringTip"><span data-i18n="tabRecurring"></span></button>
+    <button class="tab" data-tab="nastaveni" data-i18n-title="tabSettingsTip"><span data-i18n="tabSettings"></span></button>
+    <button class="tab" data-tab="dokumentace" data-i18n-title="tabDocsTip"><span data-i18n="tabDocs"></span></button>
     <button class="tab" data-tab="napoveda" data-i18n-title="tabHelpTip"><span data-i18n="tabHelp"></span></button>
   </nav>
 
@@ -310,6 +312,30 @@
           <button id="tplDefaults" data-i18n-title="tplDefaultsTip"><span data-i18n="tplDefaults"></span></button>
           <button id="tplSave" class="primary" data-i18n-title="tplSaveTip"><span data-i18n="tplSave"></span></button>
         </div>
+      </section>
+    </div>
+
+    <!-- ───────────── Nastavení ───────────── -->
+    <div class="page hidden" id="page-nastaveni">
+      <section>
+        <h2 data-i18n="setTitle">Nastavení</h2>
+        <p class="hint" data-i18n="setHelp" style="margin:0 0 14px"></p>
+        <div class="row" style="margin-bottom:12px">
+          <div>
+            <label for="minAmount" data-i18n="setMinLabel"></label>
+            <input type="number" id="minAmount" min="0" step="1" value="200" style="max-width:160px" data-i18n-title="setMinTip">
+          </div>
+        </div>
+        <p class="hint" data-i18n="setMinHint"></p>
+      </section>
+    </div>
+
+    <!-- ───────────── Dokumentace ───────────── -->
+    <div class="page hidden" id="page-dokumentace">
+      <section>
+        <h2 data-i18n="tabDocs">Dokumentace</h2>
+        <p class="hint" data-i18n="docsHelp" style="margin:0 0 14px"></p>
+        <div id="docsBox" class="help"></div>
       </section>
     </div>
 

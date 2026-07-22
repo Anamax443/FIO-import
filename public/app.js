@@ -32,6 +32,7 @@ function applyLang() {
   }
   tickClock();
   renderHelp();
+  renderDocs();
   if (template.length) renderTemplate();
   render();
   renderHistory();
@@ -444,6 +445,7 @@ async function process() {
         prevXml: inputValue('prevXml'),
         useAi: $('useAi').checked,
         useRecurring: $('useRecurring').checked,
+        minAmount: getMinAmount(),
       }),
     });
     const data = await res.json();
@@ -460,6 +462,7 @@ async function process() {
     if (data.withRecurring === false) notes.push(t.recurringOff);
     if (data.fromMovements > 0) notes.push(t.fromMovementsInfo(data.fromMovements));
     if (data.outOfRange > 0) notes.push(t.outOfRangeInfo(data.outOfRange));
+    if (data.belowMin > 0) notes.push(t.belowMinInfo(data.belowMin, data.minAmount));
     if (!data.aiUsed) notes.push(t.aiOff);
     showMessage(notes.join(' '), data.outOfRange > 0 ? 'warn' : 'ok');
   } catch (err) {
@@ -679,7 +682,7 @@ function setupHistory() {
 
 /* ---------- záložky ---------- */
 
-const TABS = ['davka', 'prehled', 'historie', 'pravidelne', 'napoveda'];
+const TABS = ['davka', 'prehled', 'historie', 'pravidelne', 'nastaveni', 'dokumentace', 'napoveda'];
 
 function showTab(name) {
   const tab = TABS.includes(name) ? name : TABS[0];
@@ -704,6 +707,28 @@ function renderHelp() {
   $('helpBox').innerHTML = t.help.map((s) => `
     <h3>${escapeHtml(s.h)}</h3>
     <p>${escapeHtml(s.p)}</p>`).join('');
+}
+
+function renderDocs() {
+  $('docsBox').innerHTML = t.docs.map((s) => `
+    <h3>${escapeHtml(s.h)}</h3>
+    <p>${escapeHtml(s.p)}</p>`).join('');
+}
+
+/* ---------- nastavení ---------- */
+
+/** Minimální částka výdaje — čte se z Nastavení (localStorage přes pole). */
+function getMinAmount() {
+  const raw = $('minAmount')?.value;
+  const n = raw === undefined || raw === '' ? 200 : Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : 200;
+}
+
+function setupSettings() {
+  const input = $('minAmount');
+  const saved = localStorage.getItem('fio-minAmount');
+  if (saved !== null) input.value = saved;
+  input.addEventListener('input', () => localStorage.setItem('fio-minAmount', input.value));
 }
 
 /* ---------- hlavička: čas a verze ze serveru ---------- */
@@ -917,6 +942,7 @@ function init() {
   setupTemplate();
   setupExport();
   setupHistory();
+  setupSettings();
   $('date').addEventListener('change', updateTplSummary);
 
   startHeaderClock();

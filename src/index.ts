@@ -14,6 +14,7 @@ import { parseFioMovements, parseHistoryCsv } from './parse/fioCsv.js';
 import { parsePrevXml, prevXmlToLedger } from './parse/prevXml.js';
 import { parseRevolut } from './parse/revolut.js';
 import { buildRecurring, RECURRING_TEMPLATE, renderTemplate, type RecurringRow } from './recurring.js';
+import { applyMinAmount, DEFAULT_MIN_AMOUNT } from './threshold.js';
 import { inRange } from './util.js';
 import { buildXml, DEFAULT_CONSTANTS, MESSAGE_MAX_LEN, validate, type XmlConstants } from './xml.js';
 import type { LedgerEntry, LineItem } from './types.js';
@@ -49,6 +50,8 @@ interface ProcessBody {
   useAi?: boolean;
   /** Přidat do dávky pravidelné a povinné platby? Výchozí ano. */
   useRecurring?: boolean;
+  /** Minimální částka výdaje (Nastavení). Výdaje pod ní se předvyplní jako vypnuté. */
+  minAmount?: number;
 }
 
 interface GenerateBody {
@@ -161,12 +164,23 @@ async function handleProcess(request: Request, env: Env): Promise<Response> {
   // 5) Dedup — shody se nemažou, jen předvyplní jako vyřazené
   const { rows: deduped, report } = dedupe(rows, history);
 
+  // 6) Minimální částka (Nastavení) — malé výdaje z výpisů se předvyplní jako vypnuté.
+  const minAmount = Number.isFinite(Number(body.minAmount)) && Number(body.minAmount) >= 0
+    ? Number(body.minAmount)
+    : DEFAULT_MIN_AMOUNT;
+  const belowMin = deduped.filter(
+    (r) => (r.source === 'fio' || r.source === 'revolut') && r.include && r.amount < minAmount,
+  ).length;
+  const finalRows = applyMinAmount(deduped, minAmount);
+
   return json({
     date,
-    rows: deduped,
+    rows: finalRows,
     report,
     outOfRange,
     withRecurring,
+    minAmount,
+    belowMin,
     fromMovements: movements.expenses.length,
     historySize: history.length,
     // Celá historie k prohlížení v UI (dohledání, kdy se co uplatnilo).
