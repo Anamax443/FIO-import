@@ -2,7 +2,7 @@
 
 export type Source = 'fio' | 'revolut' | 'pravidelna';
 
-export type Status = 'NEW' | 'ALREADY_CLAIMED' | 'DUPLICATE_IN_BATCH';
+export type Status = 'NEW' | 'ALREADY_CLAIMED' | 'ALREADY_GENERATED' | 'DUPLICATE_IN_BATCH';
 
 export interface LineItem {
   /** Stabilní ID v rámci jedné dávky (pro UI a /api/generate). */

@@ -27,6 +27,7 @@ export function summarize(rows) {
     activeCount: active.length,
     total: round(sum(active)),
     claimed: rows.filter((r) => r.status === 'ALREADY_CLAIMED').length,
+    generated: rows.filter((r) => r.status === 'ALREADY_GENERATED').length,
     duplicate: rows.filter((r) => r.status === 'DUPLICATE_IN_BATCH').length,
     mandatory: rows.filter((r) => r.mandatory).length,
     mandatoryTotal: round(sum(rows.filter((r) => r.mandatory && r.include))),
@@ -116,6 +117,7 @@ export function buildReportHtml(rows, s, labels, meta) {
   <div class="card"><div class="k">${esc(labels.checksum)}</div><div class="v">${fmt(s.total)} CZK</div></div>
   <div class="card"><div class="k">${esc(labels.mandatory)}</div><div class="v">${s.mandatory} · ${fmt(s.mandatoryTotal)} CZK</div></div>
   <div class="card"><div class="k">${esc(labels.claimed)}</div><div class="v">${s.claimed}</div></div>
+  <div class="card"><div class="k">${esc(labels.generated)}</div><div class="v">${s.generated}</div></div>
   <div class="card"><div class="k">${esc(labels.duplicate)}</div><div class="v">${s.duplicate}</div></div>
 </div>
 

@@ -1,13 +1,15 @@
 /**
  * Deduplikace — kontrola už uplatněných nákladů (docs/SPEC.md §8).
  *
- * Cíl: žádnou částku nestáhnout podruhé. Klíč = datum_txn + částka.
- * Shody se NIKDY nemažou — jen se předvyplní jako vyřazené (`include = false`)
- * a uživatel je může v editaci přebít (existují legitimní duplicity:
- * dvě stejné Alza týž den, dva Lidl týž den).
+ * **Autorita = Fio výpis** (reálný pohyb na účtu příjemce, `source === 'history'`).
+ * Jen *vygenerované* záznamy (minulé XML `prev_xml` + ledger z generování dávky)
+ * NEJSOU potvrzení — XML se dá vygenerovat a do banky nenahrát. Proto:
+ *   - shoda proti Fio výpisu → `ALREADY_CLAIMED` (vyřadit, potvrzeno),
+ *   - shoda jen proti vygenerovanému → `ALREADY_GENERATED` (zůstane v návrhu
+ *     s příznakem, defaultně vypnuté — když jsi XML nenahrál, jedním klikem zapneš).
+ * Shody se NIKDY nemažou.
  *
- * Počítá se s výskyty: 2 v historii vs. 3 nově → první dva ALREADY_CLAIMED,
- * třetí zůstane NEW.
+ * Počítá se s výskyty: 2 v historii vs. 3 nově → první dva ALREADY_*, třetí NEW.
  */
 
 import { asciiFold } from './util.js';
@@ -29,9 +31,15 @@ function normText(s: string | undefined): string {
   return asciiFold(String(s ?? '')).replace(SHARE_MARK, '').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
+/** Fio výpis (reálný pohyb) = jediná autorita pro potvrzené uplatnění. */
+function isConfirmed(source: string): boolean {
+  return source === 'history';
+}
+
 export interface DedupReport {
   new: number;
   alreadyClaimed: number;
+  alreadyGenerated: number;
   duplicateInBatch: number;
 }
 
@@ -41,38 +49,34 @@ export interface DedupResult {
 }
 
 export function dedupe(rows: LineItem[], history: LedgerEntry[]): DedupResult {
-  const remaining = new Map<string, number>();
-  for (const h of history) {
-    remaining.set(h.fingerprint, (remaining.get(h.fingerprint) ?? 0) + 1);
-  }
+  // Historie ve dvou úrovních autority: potvrzené Fio výpisem × jen vygenerované.
+  const confirmedFp = new Map<string, number>();
+  const generatedFp = new Map<string, number>();
+  const confirmedText = new Map<string, number>();
+  const generatedText = new Map<string, number>();
 
-  // Pravidelné platby nemají datum transakce, takže je otisk datum+částka nechytí.
-  // Porovnávají se proto podle TEXTU (obsahuje měsíc i částku, je jednoznačný) —
-  // když už tenhle měsíc zálohu zaplatíš, přijde na účet příjemce se stejným textem.
-  const historyText = new Map<string, number>();
   for (const h of history) {
+    const confirmed = isConfirmed(h.source);
+    inc(confirmed ? confirmedFp : generatedFp, h.fingerprint);
     const k = normText(h.merchant);
-    if (k) historyText.set(k, (historyText.get(k) ?? 0) + 1);
+    if (k) inc(confirmed ? confirmedText : generatedText, k);
   }
 
   const seenInBatch = new Map<string, number>();
-  const report: DedupReport = { new: 0, alreadyClaimed: 0, duplicateInBatch: 0 };
+  const report: DedupReport = { new: 0, alreadyClaimed: 0, alreadyGenerated: 0, duplicateInBatch: 0 };
 
   const out = rows.map((row) => {
-    // Pravidelné platby — dedup podle textu zprávy proti historii.
+    // Pravidelné platby nemají datum transakce → dedup podle TEXTU zprávy.
     if (row.source === 'pravidelna') {
       const k = normText(row.message);
-      const left = historyText.get(k) ?? 0;
-      if (k && left > 0) {
-        historyText.set(k, left - 1);
+      if (k && take(confirmedText, k)) {
         report.alreadyClaimed++;
-        const when = history.find((h) => normText(h.merchant) === k);
-        return {
-          ...row,
-          status: 'ALREADY_CLAIMED' as const,
-          include: false,
-          note: joinNote(row.note, `Už uplatněno${when ? ` (${when.date_txn})` : ''} — tuhle zálohu jsi tenhle měsíc nejspíš už zaplatil. Pokud ne, zapni řádek ručně.`),
-        };
+        const when = whenFor(history, (h) => isConfirmed(h.source) && normText(h.merchant) === k);
+        return claimed(row, `Už uplatněno ve Fio výpisu${when ? ` (${when})` : ''} — tuhle zálohu jsi tenhle měsíc už zaplatil. Pokud ne, zapni řádek ručně.`);
+      }
+      if (k && take(generatedText, k)) {
+        report.alreadyGenerated++;
+        return generated(row);
       }
       report.new++;
       return row;
@@ -81,7 +85,6 @@ export function dedupe(rows: LineItem[], history: LedgerEntry[]): DedupResult {
     const fp = row.fingerprint;
     const already = seenInBatch.get(fp) ?? 0;
     seenInBatch.set(fp, already + 1);
-
     if (already > 0) {
       report.duplicateInBatch++;
       return {
@@ -92,17 +95,14 @@ export function dedupe(rows: LineItem[], history: LedgerEntry[]): DedupResult {
       };
     }
 
-    const left = remaining.get(fp) ?? 0;
-    if (left > 0) {
-      remaining.set(fp, left - 1);
+    if (take(confirmedFp, fp)) {
       report.alreadyClaimed++;
-      const when = history.find((h) => h.fingerprint === fp);
-      return {
-        ...row,
-        status: 'ALREADY_CLAIMED' as const,
-        include: false,
-        note: joinNote(row.note, `Už uplatněno${when ? ` (${when.date_txn})` : ''} — pokud jde o samostatný nákup, zapni řádek ručně.`),
-      };
+      const when = whenFor(history, (h) => isConfirmed(h.source) && h.fingerprint === fp);
+      return claimed(row, `Už uplatněno ve Fio výpisu${when ? ` (${when})` : ''} — pokud jde o samostatný nákup, zapni řádek ručně.`);
+    }
+    if (take(generatedFp, fp)) {
+      report.alreadyGenerated++;
+      return generated(row);
     }
 
     report.new++;
@@ -110,6 +110,37 @@ export function dedupe(rows: LineItem[], history: LedgerEntry[]): DedupResult {
   });
 
   return { rows: out, report };
+}
+
+/** Potvrzeno Fio výpisem → vyřadit. */
+function claimed(row: LineItem, note: string): LineItem {
+  return { ...row, status: 'ALREADY_CLAIMED', include: false, note: joinNote(row.note, note) };
+}
+
+/** Jen vygenerováno (prev_xml/ledger), Fio to nepotvrdil → zůstane v návrhu, vypnuté. */
+function generated(row: LineItem): LineItem {
+  return {
+    ...row,
+    status: 'ALREADY_GENERATED',
+    include: false,
+    note: joinNote(row.note, 'Vygenerováno v předchozí dávce, ale NENÍ ve Fio výpisu — pokud jsi XML nahrál do banky, nech vypnuté; pokud ne, zapni a pošli.'),
+  };
+}
+
+function inc(map: Map<string, number>, key: string): void {
+  map.set(key, (map.get(key) ?? 0) + 1);
+}
+
+/** Odebere jeden výskyt, když existuje (počítání výskytů). */
+function take(map: Map<string, number>, key: string): boolean {
+  const left = map.get(key) ?? 0;
+  if (left <= 0) return false;
+  map.set(key, left - 1);
+  return true;
+}
+
+function whenFor(history: LedgerEntry[], pred: (h: LedgerEntry) => boolean): string | undefined {
+  return history.find(pred)?.date_txn;
 }
 
 function joinNote(existing: string | undefined, added: string): string {

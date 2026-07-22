@@ -123,6 +123,7 @@ td input[type="number"] { text-align: right; font-family: var(--mono); }
 .badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; white-space: nowrap; }
 .badge.NEW { background: #17402c; color: #6cd39a; }
 .badge.ALREADY_CLAIMED { background: #43331a; color: #e8bf72; }
+.badge.ALREADY_GENERATED { background: #1c3a52; color: #79bde8; }
 .badge.DUPLICATE_IN_BATCH { background: #452226; color: #f09a97; }
 .badge.src { background: var(--panel-2); color: var(--fg-dim); }
 

@@ -33,7 +33,7 @@ describe('dedupe', () => {
     expect(rows[0].include).toBe(true);
     expect(rows[1].status).toBe('DUPLICATE_IN_BATCH');
     expect(rows[1].include).toBe(false);
-    expect(report).toEqual({ new: 1, alreadyClaimed: 0, duplicateInBatch: 1 });
+    expect(report).toEqual({ new: 1, alreadyClaimed: 0, alreadyGenerated: 0, duplicateInBatch: 1 });
   });
 
   it('počítá výskyty: 2 v historii vs. 3 nově → třetí zůstane NEW', () => {
@@ -135,5 +135,54 @@ describe('dedupe', () => {
     };
     const { rows } = dedupe([rec], [other]);
     expect(rows[0].status).toBe('NEW');
+  });
+});
+
+describe('dedup — autorita Fio výpisu vs. jen vygenerované', () => {
+  // Vygenerovat XML != nahrát do banky. Shoda jen proti ledgeru/prev_xml proto
+  // řádek nevyřadí natvrdo, jen ho označí příznakem a nechá vypnutý v návrhu.
+  it('shoda jen proti prev_xml → ALREADY_GENERATED, vypnuté, zůstane v návrhu', () => {
+    const gen: LedgerEntry = {
+      fingerprint: fingerprint('2026-07-05', 277.82), date_txn: '2026-07-05',
+      amount: 277.82, merchant: 'Nákup ze dne 05.07.2026 Lidl', source: 'prev_xml',
+    };
+    const { rows, report } = dedupe([row('a', '2026-07-05', 277.82)], [gen]);
+    expect(rows[0].status).toBe('ALREADY_GENERATED');
+    expect(rows[0].include).toBe(false);
+    expect(rows[0].note).toContain('Vygenerováno');
+    expect(report.alreadyGenerated).toBe(1);
+    expect(report.alreadyClaimed).toBe(0);
+  });
+
+  it('shoda proti ledgeru z generování (source revolut) → ALREADY_GENERATED', () => {
+    const led: LedgerEntry = {
+      fingerprint: fingerprint('2026-07-05', 277.82), date_txn: '2026-07-05',
+      amount: 277.82, merchant: 'Lidl', source: 'revolut',
+    };
+    const { rows } = dedupe([row('a', '2026-07-05', 277.82)], [led]);
+    expect(rows[0].status).toBe('ALREADY_GENERATED');
+  });
+
+  it('Fio výpis (source history) potvrzuje → ALREADY_CLAIMED', () => {
+    const { rows, report } = dedupe([row('a', '2026-07-05', 277.82)], [hist('2026-07-05', 277.82)]);
+    expect(rows[0].status).toBe('ALREADY_CLAIMED');
+    expect(rows[0].include).toBe(false);
+    expect(rows[0].note).toContain('ve Fio výpisu');
+    expect(report).toMatchObject({ alreadyClaimed: 1, alreadyGenerated: 0 });
+  });
+
+  it('pravidelná: shoda proti prev_xml (stejný měsíc) → ALREADY_GENERATED, ne CLAIMED', () => {
+    const rec: LineItem = {
+      id: 'rec-1', source: 'pravidelna', fingerprint: 'rec|1|2026-07-21', status: 'NEW',
+      mandatory: false, include: true, amount: 400,
+      message: 'Neo Modrý - telefon Maxík mobil (400 Kč) - červenec 2026',
+    };
+    const genXml: LedgerEntry = {
+      fingerprint: '2026-07-21|400.00', date_txn: '2026-07-21', amount: 400,
+      merchant: 'Neo Modrý - telefon Maxík mobil (400 Kč) - červenec 2026', source: 'prev_xml',
+    };
+    const { rows } = dedupe([rec], [genXml]);
+    expect(rows[0].status).toBe('ALREADY_GENERATED');
+    expect(rows[0].include).toBe(false);
   });
 });

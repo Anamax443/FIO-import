@@ -8,7 +8,7 @@ const TEXTAREAS = ['revolut', 'historyCsv', 'prevXml'];
 let lang = localStorage.getItem('fio-lang') || 'cs';
 let t = STRINGS[lang];
 let rows = [];
-let report = { new: 0, alreadyClaimed: 0, duplicateInBatch: 0 };
+let report = { new: 0, alreadyClaimed: 0, alreadyGenerated: 0, duplicateInBatch: 0 };
 let history = [];   // celá historie pro dedup — k prohlížení v záložce Historie
 
 /* ---------- i18n ---------- */
@@ -215,6 +215,7 @@ function updateSummary() {
   $('sumCount').textContent = active.length;
   $('sumTotal').textContent = fmt(Math.round(total * 100) / 100);
   $('sumClaimed').textContent = rows.filter((r) => r.status === 'ALREADY_CLAIMED').length;
+  $('sumGenerated').textContent = rows.filter((r) => r.status === 'ALREADY_GENERATED').length;
   $('sumDup').textContent = rows.filter((r) => r.status === 'DUPLICATE_IN_BATCH').length;
   $('generate').disabled = active.length === 0;
   renderDash();   // dashboard drží krok s ručními úpravami (include, částka)
@@ -531,6 +532,7 @@ function renderDash() {
     [t.sumTotal, `${fmt(s.total)} CZK`],
     [t.dashMandatory, `${s.mandatory} · ${fmt(s.mandatoryTotal)} CZK`],
     [t.sumClaimed, s.claimed],
+    [t.sumGenerated, s.generated],
     [t.sumDup, s.duplicate],
   ].map(([k, v]) => `<div class="card"><div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(String(v))}</div></div>`).join('');
 
@@ -551,7 +553,7 @@ function exportLabels() {
     reportTitle: t.reportTitle, due: t.date, generatedAt: t.reportGenerated, version: t.commit,
     active: t.dashActive, sum: t.dashSum, allRows: t.reportAllRows,
     activeOrders: t.sumCount, checksum: t.sumTotal, mandatory: t.dashMandatory,
-    claimed: t.sumClaimed, duplicate: t.sumDup, bySource: t.bySource, byCategory: t.byCategory,
+    claimed: t.sumClaimed, generated: t.sumGenerated, duplicate: t.sumDup, bySource: t.bySource, byCategory: t.byCategory,
   };
 }
 
