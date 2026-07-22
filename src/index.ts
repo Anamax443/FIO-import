@@ -7,7 +7,7 @@
  */
 
 import { authorize } from './auth.js';
-import { checkAi, classify } from './ai.js';
+import { checkAi, classify, providerChain, WORKERS_AI_MODEL, type AiProvider } from './ai.js';
 import { dedupe } from './dedup.js';
 import { parseFioCard } from './parse/fioCard.js';
 import { parseFioMovements, parseHistoryCsv } from './parse/fioCsv.js';
@@ -22,6 +22,10 @@ export interface Env {
   ASSETS: Fetcher;
   DB?: D1Database;
   ANTHROPIC_API_KEY?: string;
+  /** Cloudflare Workers AI binding — free backend AI vrstvy. */
+  AI?: Ai;
+  /** Výběr backendu AI vrstvy: 'anthropic' | 'workers-ai' | 'off'; prázdné = auto. */
+  AI_PROVIDER?: string;
   /** Brána k /api/* — viz src/auth.ts. Bez konfigurace API nic nepustí (fail-closed). */
   APP_TOKEN?: string;
   ACCESS_TEAM_DOMAIN?: string;
@@ -68,15 +72,24 @@ export default {
         return json({ commit: env.COMMIT_SHA ?? 'dev', time: new Date().toISOString(), aiConfigured: Boolean(env.ANTHROPIC_API_KEY) });
       }
       if (url.pathname === '/api/ai-check' && request.method === 'GET') {
-        if (!env.ANTHROPIC_API_KEY) return json({ configured: false });
+        const chain = providerChain({ provider: env.AI_PROVIDER, anthropicKey: env.ANTHROPIC_API_KEY, ai: env.AI });
+        if (chain.length === 0) return json({ configured: false, provider: null });
+        const primary = chain[0];
+        const fallback = chain[1] ?? null;
+        // Free/nativní backend billable probe nepotřebuje — hlásí se dostupnost.
+        if (primary === 'workers-ai') {
+          return json({ configured: true, ok: true, provider: 'workers-ai', model: WORKERS_AI_MODEL, free: true, fallback });
+        }
+        // primary = anthropic → živý billable probe (odhalí i chybějící kredit)
         try {
-          return json({ configured: true, ok: true, model: await checkAi(env.ANTHROPIC_API_KEY) });
+          return json({ configured: true, ok: true, provider: 'anthropic', model: await checkAi(env.ANTHROPIC_API_KEY as string), fallback });
         } catch (err) {
           const msg = err instanceof Error ? err.message : 'chyba spojení';
           const reason = /credit balance/i.test(msg) ? 'no_credit'
             : /authentication|x-api-key|invalid api key|401/i.test(msg) ? 'auth'
               : 'other';
-          return json({ configured: true, ok: false, reason, error: msg });
+          // S free fallbackem appka pořád funguje — jen poběží na Workers AI.
+          return json({ configured: true, ok: Boolean(fallback), provider: 'anthropic', reason, error: msg, fallback });
         }
       }
       if (url.pathname === '/api/template') {
@@ -122,9 +135,12 @@ async function handleProcess(request: Request, env: Env): Promise<Response> {
   rows = rows.filter((r) => inRange(r.date_txn, body.dateFrom, body.dateTo));
   const outOfRange = beforeRange - rows.length;
 
-  // 2) AI vrstva (best-effort, neblokuje)
+  // 2) AI vrstva (best-effort, neblokuje) — backend „dle úhrady": placený → free fallback
+  let aiProvider: AiProvider | null = null;
   if (body.useAi !== false) {
-    rows = await classify(rows, env.ANTHROPIC_API_KEY);
+    const res = await classify(rows, { provider: env.AI_PROVIDER, anthropicKey: env.ANTHROPIC_API_KEY, ai: env.AI });
+    rows = res.rows;
+    aiProvider = res.provider;
   }
 
   // 3) Pravidelné platby + carry-over částek z minulého XML (volitelné)
@@ -155,7 +171,8 @@ async function handleProcess(request: Request, env: Env): Promise<Response> {
     historySize: history.length,
     // Celá historie k prohlížení v UI (dohledání, kdy se co uplatnilo).
     history: history.map((h) => ({ date_txn: h.date_txn, amount: h.amount, merchant: h.merchant, source: h.source })),
-    aiUsed: body.useAi !== false && Boolean(env.ANTHROPIC_API_KEY),
+    aiUsed: aiProvider !== null,
+    aiProvider,
   });
 }
 

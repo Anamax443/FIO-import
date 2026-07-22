@@ -15,11 +15,13 @@
       "database_id": "c082caa7-9624-43b3-bf77-7f1c5e8db94c"
     }
   ],
+  "ai": { "binding": "AI" },
   "observability": { "enabled": true },
   "vars": {
     "ACCOUNT_FROM": "2401442781",
     "ACCOUNT_TO": "2900203312",
     "BANK_CODE": "2010",
-    "PAYMENT_TYPE": "431001"
+    "PAYMENT_TYPE": "431001",
+    "AI_PROVIDER": "workers-ai"
   }
 }

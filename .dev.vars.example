@@ -1,3 +1,5 @@
 # Lokální secrety pro `wrangler dev` — zkopíruj na `.dev.vars` a vyplň.
+# ANTHROPIC_API_KEY je potřeba JEN pro placený AI backend (AI_PROVIDER=anthropic).
+# Free backend (Workers AI, AI_PROVIDER=workers-ai) běží bez klíče, jen `--remote`.
 # V produkci: npx wrangler secret put ANTHROPIC_API_KEY
 ANTHROPIC_API_KEY=sk-ant-...
