@@ -15,9 +15,9 @@
 Detailní zadání: [docs/SPEC.md](docs/SPEC.md). Uživatelský návod: [docs/navod.html](docs/navod.html).
 
 ## Stav
-Jádro **hotové a ověřené**: 36 testů (Vitest), typecheck čistý, celá pipeline proběhla živě
-od výpisu po platný soubor. Zbývá nasazení do Cloudflare a ostrý běh na reálné měsíční dávce —
-viz [HANDOFF.md](HANDOFF.md).
+Jádro **hotové a ověřené**: 83 testů (Vitest), typecheck čistý, celá pipeline proběhla živě
+od výpisu po platný soubor; appka je **nasazená na Cloudflare** (bass443). Zbývá ostrý běh
+na reálné měsíční dávce — viz [HANDOFF.md](HANDOFF.md).
 
 ## Stack
 - **Cloudflare Workers** (TypeScript, `nodejs_compat`) — API + statické UI v jednom Workeru
@@ -33,7 +33,7 @@ viz [HANDOFF.md](HANDOFF.md).
 ## Spuštění / build
 ```
 npm install
-npm test            # 36 testů
+npm test            # 83 testů
 npm run typecheck
 npx wrangler dev --local --port 8788   # UI na http://127.0.0.1:8788
 ```

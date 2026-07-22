@@ -2,6 +2,28 @@
 
 Append-only. Nejnovější záznam nahoru. Slouží k pokračování z jiného počítače / po pauze.
 
+## 2026-07-22 — dedup pravidelných plateb: normalizace zlomkového podílu
+
+Textový dedup pravidelných plateb (SPEC §8, přidaný 2026-07-22) padal na **vedoucím
+podílu `½`/`¾`**. Šablona ho píše jako `½ Oneplay…`, ale Fio ho ve „Zprávě pro
+příjemce" uloží jako `? Oneplay…` (zlomek do pole nepustí a nahradí `?`), staré XML
+jako `Â½` (dvojité UTF-8). `asciiFold` jede přes NFD, které vulgární zlomky
+nerozkládá — řádky se nespárovaly a `½ Oneplay 200`, `¾ O2 300`, `½ Rodinné 50`
+padaly jako `NEW`. Hrozila **dvojí úhrada zálohy, která už tenhle měsíc odešla**.
+(Přišlo najevo při kontrole červencové dávky: ty tři položky reálně jsou na výpisu
+příjemce 2900203312 k 21. 7. 2026, ale dedup je nechytil.)
+
+**Oprava:** `normText` v `src/dedup.ts` teď před porovnáním smaže vulgární zlomky
+i jejich náhrady (`? �`). Týká se **jen porovnávání** — generované texty příkazů
+(`½/¾`) zůstávají beze změny. Ostatní pravidelné (Neo Modrý, Kanály navíc, stočné,
+elektřina, plyn) se párovaly správně už dřív, protože zlomek nemají.
+
+**Ověřeno:** `test/dedup.test.ts` +2 regresní testy (½/¾ ↔ `?`; a že se dvě různé
+½ položky nezamění). **83 testů (Vitest) zelených**, `tsc --noEmit` čistý.
+
+**Pozn. k nasazení:** živá appka běží na commitu `7441ea9` — tenhle fix se projeví
+až po `npm run deploy`. Push do `main` sám nenasazuje (FIO-import nemá CI).
+
 ## 2026-07-21 — nasazeno na Cloudflare + brána k API
 
 **Živě:** `https://fio-import.bass443.workers.dev` (účet bass443), commit `7441ea9`.

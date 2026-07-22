@@ -53,7 +53,7 @@ curl -X POST http://127.0.0.1:8788/api/ledger/import \
 
 ```
 npm run typecheck   # tsc --noEmit
-npm test            # vitest — 36 testů, akceptační čísla z docs/SAMPLE_DATA.md
+npm test            # vitest — 83 testů, akceptační čísla z docs/SAMPLE_DATA.md
 ```
 
 Testy kryjí rizikové jádro: normalizaci částek, otisk pro dedup, ASCII-fold, parsery
@@ -127,8 +127,8 @@ Pořadí, ve kterém se jádro stavělo a v němž se má i ověřovat po zásah
 
 1. `src/util.ts` — `normAmount`, `fingerprint` (datum+částka), `buildMsg`, CSV parser, ASCII-fold
 2. `src/xml.ts` — `buildXml` proti referenční transakci v [SAMPLE_DATA.md](SAMPLE_DATA.md)
-3. parsery `fioCard` / `revolut` / `history` / `prevXml`
-4. `dedup.ts` — statusy a počítání výskytů
+3. parsery `fioCard` / `revolut` / `fioCsv` (pohyby + historie) / `prevXml`
+4. `dedup.ts` — statusy, počítání výskytů, textový dedup pravidelných (normalizace zlomků)
 5. teprve pak UI, D1 a AI vrstva
 
 Ověřená akceptační čísla (živý běh 2026-07-21): pravidelné platby **9 řádků / 8 314 CZK**,

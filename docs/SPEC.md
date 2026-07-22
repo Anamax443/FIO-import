@@ -153,6 +153,10 @@ Nevznikají z výpisu. Dvě složky:
 
 Vodné se **neplatí** (jen stočné). `½` `¾` a diakritika jsou OK (UTF-8).
 
+> **Pozn.:** Fio ve „Zprávě pro příjemce" vulgární zlomek nepodporuje a uloží ho jako
+> `?` (na výpisu příjemce je pak `? Oneplay…`). Do generovaného příkazu jde `½/¾` beze
+> změny; dedup si `?` ↔ `½/¾` srovná normalizací textu (§8).
+
 ### 7b. Částky z posledního přijatého XML (carry-over)
 App z minulého XML vytáhne řádky odpovídající šabloně a **převezme částky** (přetrvají zálohy). Platby kartou z minula ignoruje, měsíc přepíše na aktuální. Bez minulého XML → výchozí částky. Mandatorní řádky jsou vždy předvyplněné a chráněné.
 
@@ -181,8 +185,14 @@ nechytí. Porovnávají se proto **podle textu zprávy** (ten obsahuje měsíc i
 jednoznačný). Když už tenhle měsíc zálohu zaplatíš, přijde na účet příjemce se stejným
 textem — pravidelná platba se pak označí `ALREADY_CLAIMED`, aby nešla podruhé.
 Text z minulého měsíce (`… červen 2026`) tu na aktuální (`… červenec 2026`) nesedne.
-*(Oprava 2026-07-22 — dřív se pravidelné platby z dedupu vyjímaly úplně, což mohlo
-navrhnout k platbě zálohu, která už tenhle měsíc odešla.)*
+
+Text se před porovnáním **normalizuje** (ASCII-fold + smazání vulgárních zlomků
+`½/¾` a jejich náhrad `?`/`�`): vedoucí „podíl" totiž uloží každý systém jinak —
+šablona `½ Oneplay…`, Fio výpis `? Oneplay…` (banka zlomek do zprávy nepustí),
+staré XML `Â½ Oneplay…`. Bez normalizace by se řádek nespároval a záloha se stáhla
+podruhé.
+*(Oprava 2026-07-22 — dřív se pravidelné platby z dedupu vyjímaly úplně; poté přidán
+textový dedup a doplněna normalizace zlomkového podílu, aby seděl i na `?` z výpisu.)*
 
 ### Ochrana proti falešným shodám
 Existují **legitimní duplicity** (dvě stejné Alza týž den, dva Lidl týž den). Proto se shoda **nikdy nemaže automaticky** — jen předvyplní jako vyřazená a **uživatel ji může přebít** v editaci, když jde o samostatný nákup. Pomůcka: porovnávat i počet výskytů (2 v historii vs. 3 nově → flagnout jen ten navíc).

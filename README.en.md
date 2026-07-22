@@ -15,9 +15,9 @@
 Full specification (Czech): [docs/SPEC.md](docs/SPEC.md). User guide: [docs/navod.en.html](docs/navod.en.html).
 
 ## Status
-The core is **done and verified**: 36 tests (Vitest), clean typecheck, and the whole pipeline
-ran live from statement to a valid file. Deployment to Cloudflare and a first real monthly
-batch remain — see [HANDOFF.md](HANDOFF.md) (Czech).
+The core is **done and verified**: 83 tests (Vitest), clean typecheck, and the whole pipeline
+ran live from statement to a valid file; the app is **deployed on Cloudflare** (bass443).
+A first real monthly batch remains — see [HANDOFF.md](HANDOFF.md) (Czech).
 
 ## Stack
 - **Cloudflare Workers** (TypeScript, `nodejs_compat`) — API and static UI in one Worker
@@ -33,7 +33,7 @@ batch remain — see [HANDOFF.md](HANDOFF.md) (Czech).
 ## Run / build
 ```
 npm install
-npm test            # 36 tests
+npm test            # 83 tests
 npm run typecheck
 npx wrangler dev --local --port 8788   # UI at http://127.0.0.1:8788
 ```

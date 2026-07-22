@@ -74,6 +74,7 @@ Pravidelné ───┘   (společný      (proti historii   (ruční krok)   (
     <div class="two">
       <div>
         <p>Otisk nákladu je <strong>datum transakce + částka</strong>. Obchodník v klíči záměrně není — texty se mezi zdroji liší („Lidl" × „nákup Lidl", „MOL" × „Malíkov PHM MOL").</p>
+        <p>Pravidelné zálohy (plyn, telefony, TV) datum transakce nemají — párují se <strong>podle textu</strong>. Když už tenhle měsíc odešly, appka je pozná i tehdy, když banka ve zprávě nahradí podíl <code>½/¾</code> otazníkem.</p>
         <p><span class="badge NEW">NEW</span><span class="badge CLAIMED">ALREADY_CLAIMED</span><span class="badge DUP">DUPLICATE_IN_BATCH</span></p>
       </div>
       <div class="panel">
@@ -99,17 +100,17 @@ Pravidelné ───┘   (společný      (proti historii   (ruční krok)   (
 
   <div class="slide">
     <div class="kicker">Stav</div>
-    <h2>Jádro ověřené, zbývá nasadit</h2>
+    <h2>Jádro ověřené a nasazené</h2>
     <div class="two">
       <div class="panel">
         <h3>Hotové</h3>
-        <p class="big ok">36 / 36</p>
-        <p style="margin:6px 0 0">testů na rizikovém jádru — parsery, otisk, dedup, formát XML. Celá pipeline proběhla živě od výpisu po platný soubor.</p>
+        <p class="big ok">83 / 83</p>
+        <p style="margin:6px 0 0">testů na rizikovém jádru — parsery, otisk, dedup, formát XML. Celá pipeline proběhla živě od výpisu po platný soubor a appka běží nasazená na Cloudflare.</p>
       </div>
       <div class="panel">
         <h3>Zbývá</h3>
-        <p class="big warn">2 kroky</p>
-        <p style="margin:6px 0 0">nasadit do Cloudflare s databází a projet jednu reálnou měsíční dávku vedle dosavadního ručního postupu.</p>
+        <p class="big warn">1 krok</p>
+        <p style="margin:6px 0 0">projet jednu reálnou měsíční dávku vedle dosavadního ručního postupu a porovnat výsledky, než se přepne naostro.</p>
       </div>
     </div>
   </div>

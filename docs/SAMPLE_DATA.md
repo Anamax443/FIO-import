@@ -56,6 +56,7 @@ Formát celého souboru: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?
 | Historie 2900203312 | ~880 příchozích (uplatněných) položek zpět do 03/2023 |
 | Revolut výpis 05–07/2026 | ~130 výdajů kartou/bankomat (DOKONČENO) |
 | Dedup Revolut × historie (klíč datum+částka) | **11 shod** ALREADY_CLAIMED (Netflix 419, Lidl 1898,59, MOL 1136,10, dálniční známka 300, …) |
+| Dedup pravidelných se zlomkem (text) | `½ Oneplay 200`, `¾ O2 300`, `½ Rodinné 50` ze šablony se spárují s `? …` z výpisu příjemce → ALREADY_CLAIMED (banka `½/¾` ukládá jako `?`) |
 | ASCII-fold | `Żabka` → `Zabka`, `Gdański Zarząd Dróg` → `Gdanski Zarzad Drog` |
 | Dedup – falešné shody | dvě stejné Alza týž den = legitimní; shoda se NEmaže, jen include=false |
 

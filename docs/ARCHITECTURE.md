@@ -41,7 +41,8 @@ Minulé XML ────────┘        └─ D1: šablona pravidelných
 | `util.ts` | normAmount, fingerprint (**datum+částka**), buildMsg, CSV parser, ASCII-fold. **Ověřené jádro.** |
 | `parse/fioCard.ts` | Fio copy-paste (tab), jen `Platba kartou` / `Bankomat` |
 | `parse/revolut.ts` | Revolut CSV (comma, DOKONČENO, vícemenovost) |
-| `parse/history.ts` | Fio CSV pohyby 2900203312 → řádky ledgeru |
+| `parse/fioCsv.ts` | Fio CSV „Pohyby na účtu" 2900203312 → výdaje (záporný Objem) + historie ledgeru (příchozí) |
+| `merchantNote.ts` | odhad kategorie/poznámky z názvu obchodníka (bankomat, PHM, parkování…) |
 | `parse/prevXml.ts` | z minulého XML: ledger + transakce pro carry-over |
 | `recurring.ts` | sestavení pravidelných ze šablony + carry-over částek |
 | `dedup.ts` | statusy NEW / ALREADY_CLAIMED / DUPLICATE_IN_BATCH (shody se nemažou, jen `include=false`) |
@@ -76,6 +77,12 @@ a limit délky zprávy (140 znaků).
   každé dávce) + volitelně nahraný CSV/XML v rámci requestu.
 - Shody se **nemažou**, jen `include=false` + status → uživatel může přebít (legitimní duplicity).
 - Počítají se **výskyty**: 2 v historii vs. 3 nově → první dva se vyřadí, třetí zůstane `NEW`.
+- **Pravidelné platby** nemají datum transakce, takže je otisk `datum+částka` nechytí.
+  Porovnávají se proto **podle textu zprávy** (obsahuje měsíc i částku, je jednoznačný):
+  když už tenhle měsíc záloha odešla, je na výpisu příjemce se stejným textem → `ALREADY_CLAIMED`.
+  Text se před porovnáním normalizuje (`normText`): kromě ASCII-foldu se smažou **vulgární
+  zlomky `½/¾` a jejich náhrady `?`/`�`** — vedoucí „podíl" uloží každý systém jinak
+  (šablona `½`, Fio výpis `?`, staré XML `Â½`), a bez toho by se řádek nespároval.
 
 ## AI vrstva
 
@@ -104,3 +111,4 @@ dedup jede jen z podkladů nahraných v requestu), jen si nepamatuje historii me
 | Rok v textech pravidelných plateb | Zástupné `{rok}` místo literálu `2026` | Pro rok 2026 se vykreslí znak po znaku stejně, ale text nezastará v lednu 2027 |
 | Cizoměnový Revolut řádek | Defaultně `include=false` + upozornění | Do banky jde CZK; ekvivalent, který reálně padl, musí doplnit uživatel |
 | Zápis do D1 při generování | Selhání se loguje, ale XML se vrátí | Audit není důvod shodit celou dávku |
+| Dedup pravidelných plateb | Porovnání **podle textu zprávy**, ne otisku; text se normalizuje (smaž `½/¾/?/�`) | Pravidelné nemají datum txn; vedoucí zlomkový podíl banka ve zprávě nahradí `?` (2026-07-22) |
