@@ -15,7 +15,7 @@ Zadání je v [SPEC.md](SPEC.md), ověřená vstupní data a akceptační čísl
 | UI | statické `public/` (binding `ASSETS`) | vanilla JS moduly, IT-ops dark, i18n CS/EN |
 | AI | **přepínatelné**: Cloudflare Workers AI (Llama 3.1 8B, zdarma) / Claude Haiku 4.5 (placený) | kategorizace/čištění; best-effort, `AI_PROVIDER` volí backend |
 | Testy | **Vitest** | rizikové jádro: parsery, otisk, XML, dedup |
-| Secrets | `ANTHROPIC_API_KEY` | `wrangler secret put` / `.dev.vars` |
+| Secrets | `ANTHROPIC_API_KEY` (volitelný — jen placený backend; free Workers AI běží bez klíče) | `wrangler secret put` / `.dev.vars` |
 
 ## Tok dat
 

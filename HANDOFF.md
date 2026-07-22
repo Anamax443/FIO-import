@@ -2,6 +2,16 @@
 
 Append-only. Nejnovější záznam nahoru. Slouží k pokračování z jiného počítače / po pauze.
 
+## 2026-07-22 — sladění UI textů s přepínatelným AI backendem
+
+Dokumentace (README, ARCHITECTURE, BUILD, SAMPLE_DATA, prezentace, status) přepínatelný
+backend popisovala správně, ale **UI texty v `public/i18n.js`** pořád tvářily Claude
+Haiku / `ANTHROPIC_API_KEY` jako jediný backend. Sladěno (CS+EN): checkbox „Použít AI
+kategorizaci" (bez názvu modelu), hlášky `aiOff`/`aiNone` (obecné, bez odkazu na
+Anthropic klíč), nápověda „Co dělá AI" (přepínatelný backend, free Workers AI výchozí).
+Drobně: komentář v `app.js`, řádek Secrets v ARCHITECTURE, BUILD §7. Bez změny logiky
+(98 testů beze změny). `public/` servíruje Worker → v živé appce až po `npm run deploy`.
+
 ## 2026-07-22 — dedup: autorita Fio výpisu (nový status ALREADY_GENERATED)
 
 Dřív se jako „už uplatněné" bralo i to, co je jen **vygenerované** (D1 ledger

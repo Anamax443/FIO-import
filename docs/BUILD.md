@@ -124,7 +124,7 @@ Až bude Access hotový, token se dá zrušit: `npx wrangler secret delete APP_T
 
 ### Ostatní
 
-- `ANTHROPIC_API_KEY` — secret pro AI vrstvu (volitelný)
+- `ANTHROPIC_API_KEY` — secret pro **placený** AI backend (volitelný; free Workers AI běží bez něj)
 - Cloudflare API token pro CI (pokud se CI zapne) — scope Workers Scripts:Edit + D1:Edit
 - žádné podpisové certifikáty, žádné servisní účty
 

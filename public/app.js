@@ -759,7 +759,7 @@ function startHeaderClock() {
   setInterval(tickClock, 1000);
   // Přesync: srovná drift hodin a ukáže, když se nasadí nová verze nebo appka spadne.
   setInterval(syncHeader, 60_000);
-  // AI kontrola je dražší (volá Anthropic), stačí řidčeji.
+  // AI kontrola volá backend (u placeného Anthropicu i síť), stačí řidčeji.
   setInterval(syncAi, 5 * 60_000);
 }
 
