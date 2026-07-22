@@ -102,6 +102,16 @@ export async function classify(rows: LineItem[], apiKey: string | undefined): Pr
   });
 }
 
+/**
+ * Ověří, že klíč funguje a model existuje — bez spotřeby tokenů
+ * (`models.retrieve` je GET). Vyhodí při neplatném klíči i chybějícím modelu.
+ */
+export async function checkAi(apiKey: string): Promise<string> {
+  const client = new Anthropic({ apiKey, timeout: 8000, maxRetries: 0 });
+  const model = await client.models.retrieve(AI_MODEL);
+  return model.id;
+}
+
 async function callClaude(targets: LineItem[], apiKey: string): Promise<Classified[]> {
   const client = new Anthropic({ apiKey, timeout: TIMEOUT_MS, maxRetries: 1 });
 

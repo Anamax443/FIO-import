@@ -733,12 +733,29 @@ function tickClock() {
   }).format(now);
 }
 
+/** Skutečná konektivita AI — ověří klíč i model přes /api/ai-check. */
+async function syncAi() {
+  const dot = $('aiDot');
+  try {
+    const res = await api('/api/ai-check');
+    const v = await res.json();
+    if (!v.configured) { dot.className = 'dot'; dot.title = t.aiNone; return; }
+    if (v.ok) { dot.className = 'dot online'; dot.title = t.aiOnline(v.model); return; }
+    dot.className = 'dot offline'; dot.title = t.aiBad(v.error ?? '');
+  } catch {
+    dot.className = 'dot offline'; dot.title = t.aiBad('');
+  }
+}
+
 function startHeaderClock() {
   syncHeader();
+  syncAi();
   tickClock();
   setInterval(tickClock, 1000);
   // Přesync: srovná drift hodin a ukáže, když se nasadí nová verze nebo appka spadne.
   setInterval(syncHeader, 60_000);
+  // AI kontrola je dražší (volá Anthropic), stačí řidčeji.
+  setInterval(syncAi, 5 * 60_000);
 }
 
 /* ---------- soubory: drag & drop + rozpoznání typu ---------- */

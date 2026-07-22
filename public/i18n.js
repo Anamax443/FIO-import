@@ -191,6 +191,9 @@ export const STRINGS = {
     commit: 'verze',
     online: 'Spojení s aplikací v pořádku — čas i verze jsou ze serveru',
     offline: 'Aplikace neodpovídá — údaje v hlavičce nemusí být aktuální',
+    aiOnline: (m) => `AI připojena a funkční (model ${m})`,
+    aiBad: (e) => `AI klíč nastaven, ale nefunguje${e ? ` — ${e}` : ''}. Kategorizace poběží bez AI.`,
+    aiNone: 'AI klíč nenastaven — kategorizace poběží bez AI (nastav ANTHROPIC_API_KEY).',
 
     help: [
       { h: '1. Datum splatnosti a období',
@@ -407,6 +410,9 @@ export const STRINGS = {
     commit: 'version',
     online: 'Connection to the app is healthy — time and version come from the server',
     offline: 'The app is not responding — header values may be stale',
+    aiOnline: (m) => `AI connected and working (model ${m})`,
+    aiBad: (e) => `AI key is set but not working${e ? ` — ${e}` : ''}. Categorisation runs without AI.`,
+    aiNone: 'AI key not set — categorisation runs without AI (set ANTHROPIC_API_KEY).',
 
     help: [
       { h: '1. Due date and period',

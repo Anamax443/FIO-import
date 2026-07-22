@@ -7,7 +7,7 @@
  */
 
 import { authorize } from './auth.js';
-import { classify } from './ai.js';
+import { checkAi, classify } from './ai.js';
 import { dedupe } from './dedup.js';
 import { parseFioCard } from './parse/fioCard.js';
 import { parseFioMovements, parseHistoryCsv } from './parse/fioCsv.js';
@@ -65,7 +65,15 @@ export default {
 
       if (url.pathname === '/api/version') {
         // Čas ze serveru, ať hlavička ukazuje čas běžící aplikace, ne hodiny prohlížeče.
-        return json({ commit: env.COMMIT_SHA ?? 'dev', time: new Date().toISOString() });
+        return json({ commit: env.COMMIT_SHA ?? 'dev', time: new Date().toISOString(), aiConfigured: Boolean(env.ANTHROPIC_API_KEY) });
+      }
+      if (url.pathname === '/api/ai-check' && request.method === 'GET') {
+        if (!env.ANTHROPIC_API_KEY) return json({ configured: false });
+        try {
+          return json({ configured: true, ok: true, model: await checkAi(env.ANTHROPIC_API_KEY) });
+        } catch (err) {
+          return json({ configured: true, ok: false, error: err instanceof Error ? err.message : 'chyba spojení' });
+        }
       }
       if (url.pathname === '/api/template') {
         if (request.method === 'POST') return await handleTemplateSave(request, env);
