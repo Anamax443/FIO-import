@@ -75,6 +75,11 @@ a limit délky zprávy (140 znaků).
   „MOL" × „Malíkov PHM MOL" — proto není v klíči).
 - Zdroj historie: **D1 `claimed_ledger`** (naplní se importem CSV pohybů 2900203312 a po
   každé dávce) + volitelně nahraný CSV/XML v rámci requestu.
+- **Autorita = Fio výpis.** Historie se dělí na dvě úrovně: potvrzené Fio výpisem
+  (`source = history`) → `ALREADY_CLAIMED` (vyřadit); jen vygenerované (`prev_xml` +
+  ledger z generování, source revolut/fio/pravidelná) → **`ALREADY_GENERATED`**
+  (zůstane v návrhu, `include=false`, příznak). Vygenerovat XML ≠ nahrát do banky,
+  takže samotné generování náklad neuplatní.
 - Shody se **nemažou**, jen `include=false` + status → uživatel může přebít (legitimní duplicity).
 - Počítají se **výskyty**: 2 v historii vs. 3 nově → první dva se vyřadí, třetí zůstane `NEW`.
 - **Pravidelné platby** nemají datum transakce, takže je otisk `datum+částka` nechytí.
@@ -124,3 +129,4 @@ dedup jede jen z podkladů nahraných v requestu), jen si nepamatuje historii me
 | Zápis do D1 při generování | Selhání se loguje, ale XML se vrátí | Audit není důvod shodit celou dávku |
 | Dedup pravidelných plateb | Porovnání **podle textu zprávy**, ne otisku; text se normalizuje (smaž `½/¾/?/�`) | Pravidelné nemají datum txn; vedoucí zlomkový podíl banka ve zprávě nahradí `?` (2026-07-22) |
 | AI backend | Přepínatelný (`AI_PROVIDER`), placený → free fallback | Sdílená Anthropic org bez kreditu; Workers AI je zdarma, nativní a data zůstanou na CF (2026-07-22) |
+| Autorita dedupu | Tvrdě vyřadí jen shoda proti Fio výpisu (`source=history`); vygenerované (prev_xml/ledger) → `ALREADY_GENERATED` (návrh, vypnuto) | Vygenerovat XML ≠ nahrát do banky; jinak by se nenahraná dávka už nikdy nenavrhla (2026-07-22) |

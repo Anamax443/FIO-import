@@ -15,7 +15,7 @@
 Detailní zadání: [docs/SPEC.md](docs/SPEC.md). Uživatelský návod: [docs/navod.html](docs/navod.html).
 
 ## Stav
-Jádro **hotové a ověřené**: 94 testů (Vitest), typecheck čistý, celá pipeline proběhla živě
+Jádro **hotové a ověřené**: 98 testů (Vitest), typecheck čistý, celá pipeline proběhla živě
 od výpisu po platný soubor; appka je **nasazená na Cloudflare** (bass443). Zbývá ostrý běh
 na reálné měsíční dávce — viz [HANDOFF.md](HANDOFF.md).
 
@@ -33,7 +33,7 @@ na reálné měsíční dávce — viz [HANDOFF.md](HANDOFF.md).
 ## Spuštění / build
 ```
 npm install
-npm test            # 94 testů
+npm test            # 98 testů
 npm run typecheck
 npx wrangler dev --local --port 8788   # UI na http://127.0.0.1:8788
 ```

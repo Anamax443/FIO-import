@@ -2,6 +2,31 @@
 
 Append-only. Nejnovější záznam nahoru. Slouží k pokračování z jiného počítače / po pauze.
 
+## 2026-07-22 — dedup: autorita Fio výpisu (nový status ALREADY_GENERATED)
+
+Dřív se jako „už uplatněné" bralo i to, co je jen **vygenerované** (D1 ledger
+z generování + `prev_xml`). Jenže vygenerovat XML ≠ nahrát ho do banky — když ho
+nenahraješ, náklad reálně neodešel, a přesto ho dedup napořád skryl → riziko, že
+se nikdy neproplatí. (Bylo vidět na tom, že tentýž náklad byl v historii dvakrát:
+`revolut` z ledgeru + `prev_xml`.)
+
+**Princip:** jediná autorita pro tvrdé „už uplatněno" je **Fio výpis**
+(`source === 'history'`). `dedup.ts` teď historii dělí na dvě úrovně:
+- potvrzené Fio výpisem → `ALREADY_CLAIMED` (vyřadit),
+- jen vygenerované (`prev_xml` / ledger se source revolut/fio/pravidelná) → nový
+  status **`ALREADY_GENERATED`**: zůstane v návrhu s příznakem, **defaultně
+  vypnuté** (`include=false`) — když jsi XML nenahrál, jedním klikem zapneš.
+Platí i pro pravidelné (textový dedup dostal stejné rozdělení). Počítání výskytů
+zachováno, autorita per-otisk i per-text.
+
+Frontend: nový badge (modrý), volba ve filtru statusu, souhrn „Vygenerováno
+(nepotvrzeno)", dashboard karta, HTML/CSV export, i18n CS+EN, nápověda §5. Report
+má pole `alreadyGenerated`.
+
+**Ověřeno:** `test/dedup.test.ts` +4 testy (prev_xml→GENERATED, ledger revolut→
+GENERATED, Fio history→CLAIMED, pravidelná prev_xml→GENERATED). **98 testů**,
+`tsc --noEmit` čistý.
+
 ## 2026-07-22 — AI vrstva: přepínatelný backend + free Cloudflare Workers AI
 
 AI kategorizace jela jen na Claude Haiku (Anthropic), ale sdílená Anthropic org je

@@ -171,12 +171,15 @@ Množina otisků už uplatněných nákladů se sestaví z:
 - **CSV exportu pohybů na účtu příjemce 2900203312** (sekce 6b) — příchozí řádky (`Objem > 0`) = už uplatněné náklady. Datum se čte z textu `… ze dne DD.MM.RRRR`, částka z `Objem`. *Ověřeno na reálných datech: 880 položek zpět do 03/2023.*
 - a/nebo **archivu už přijatých XML** / **ledgeru**, který si app připíše po každém úspěšném importu.
 
+**Autorita = Fio výpis.** Potvrzené uplatnění je jen to, co reálně odešlo na účet příjemce (CSV pohyby, `source = history`). Minulé XML a ledger z generování jsou jen „vygenerováno" — XML se dá vytvořit a do banky nenahrát, proto takové shody padnou do `ALREADY_GENERATED` (zůstanou v návrhu, vypnuté), ne do `ALREADY_CLAIMED`.
+
 ### Klíč porovnání
 1. **`fingerprint` = `datum_txn + částka`** — hlavní klíč. *Ověřeno: texty obchodníka se mezi zdroji liší („Lidl" × „nákup Lidl", „MOL" × „Malíkov PHM MOL"), takže obchodník je jen pomocný/potvrzující, ne součást klíče.*
 2. `txn_id` jen tam, kde ho zdroj má (tyto exporty ho nemají).
 
 ### Statusy a chování
-- **`ALREADY_CLAIMED`** — shoda proti historii → řádek se zobrazí, ale **default `include = false`** + upozornění „už uplatněno {měsíc}".
+- **`ALREADY_CLAIMED`** — shoda proti **Fio výpisu** (potvrzený pohyb, `source = history`) → `include = false` + upozornění „už uplatněno ve Fio výpisu".
+- **`ALREADY_GENERATED`** — shoda jen proti **vygenerovanému** záznamu (minulé XML / ledger z generování), ale NE ve Fio výpisu → zůstane v návrhu s příznakem, **default `include = false`**. Vygenerovat XML ≠ nahrát ho do banky, takže tohle není potvrzení — když jsi XML nenahrál, řádek zapni a pošli.
 - **`DUPLICATE_IN_BATCH`** — týž náklad dvakrát v aktuálním vstupu (Fio × Revolut, překryv) → nechá se jeden, druhý `include = false` + upozornění.
 - **`NEW`** — bez shody → `include = true`.
 

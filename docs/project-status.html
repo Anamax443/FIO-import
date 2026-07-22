@@ -39,7 +39,7 @@
 <h2>Kde projekt je</h2>
 <div class="cards">
   <div class="card ok"><div class="k">Jádro</div><div class="v">hotové</div></div>
-  <div class="card ok"><div class="k">Testy</div><div class="v">94 / 94</div></div>
+  <div class="card ok"><div class="k">Testy</div><div class="v">98 / 98</div></div>
   <div class="card ok"><div class="k">Ověřeno živě</div><div class="v">ano</div></div>
   <div class="card ok"><div class="k">Nasazeno</div><div class="v">ano</div></div>
 </div>
@@ -54,7 +54,7 @@
   <tr><td>1</td><td>Zadání a ověřená vstupní data</td><td><span class="st done">hotovo</span></td><td>SPEC, vzorová data, akceptační kritéria</td></tr>
   <tr><td>2</td><td>Jádro: normalizace, otisk, generátor XML</td><td><span class="st done">hotovo</span></td><td>sedí na referenční transakci znak po znaku</td></tr>
   <tr><td>3</td><td>Parsery Fio / Revolut / historie / minulé XML</td><td><span class="st done">hotovo</span></td><td>včetně vícemenovosti a BOM/CRLF/středníků</td></tr>
-  <tr><td>4</td><td>Deduplikace</td><td><span class="st done">hotovo</span></td><td>3 stavy, počítání výskytů, shody se nemažou; i pravidelné platby podle textu (vč. podílu ½/¾ ↔ ? z výpisu)</td></tr>
+  <tr><td>4</td><td>Deduplikace</td><td><span class="st done">hotovo</span></td><td>4 stavy (autorita = Fio výpis; jen vygenerované → ALREADY_GENERATED, návrh + vypnuto), počítání výskytů; i pravidelné podle textu (½/¾ ↔ ? z výpisu)</td></tr>
   <tr><td>5</td><td>Pravidelné platby + carry-over</td><td><span class="st done">hotovo</span></td><td>9 řádků / 8 314 Kč ověřeno</td></tr>
   <tr><td>6</td><td>UI pro kontrolu a editaci</td><td><span class="st done">hotovo</span></td><td>filtry, živý součet, CS/EN</td></tr>
   <tr><td>7</td><td>AI kategorizace (přepínatelný backend)</td><td><span class="st done">hotovo</span></td><td>zdarma Cloudflare Workers AI nebo placený Claude; volitelná, automatický fallback</td></tr>
@@ -83,6 +83,7 @@
   <tr><th>Riziko</th><th>Ošetření</th></tr>
   <tr><td>Náklad se stáhne podruhé</td><td>Otisk datum+částka proti historii; pravidelné platby navíc podle textu zprávy (i když už tenhle měsíc odešly); po každé dávce se odeslané řádky zapíší do ledgeru.</td></tr>
   <tr><td>Falešná shoda smaže legitimní nákup</td><td>Shoda se nikdy nemaže — jen předvyplní jako vyřazená; uživatel ji přebije jedním klikem.</td></tr>
+  <tr><td>Náklad se neuplatní (XML vygeneruješ, ale nenahraješ do banky)</td><td>Autorita je Fio výpis, ne vygenerování. Jen vygenerovaný náklad zůstane v návrhu jako ALREADY_GENERATED (vypnutý) a dá se znovu poslat — nezmizí.</td></tr>
   <tr><td>Banka odmítne soubor</td><td>Pravidla formátu jsou v testech; validace před generováním hlásí problém dřív, než soubor vznikne.</td></tr>
   <tr><td>Výpadek AI</td><td>Vrstva je best-effort — bez klíče, při chybě i timeoutu appka pokračuje bez ní.</td></tr>
   <tr><td>Únik dat (čísla účtů, útraty)</td><td>Privátní repozitář; reálné výpisy a vygenerovaná XML jsou blokované v .gitignore.</td></tr>

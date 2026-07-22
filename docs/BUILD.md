@@ -56,7 +56,7 @@ curl -X POST http://127.0.0.1:8788/api/ledger/import \
 
 ```
 npm run typecheck   # tsc --noEmit
-npm test            # vitest — 94 testů, akceptační čísla z docs/SAMPLE_DATA.md
+npm test            # vitest — 98 testů, akceptační čísla z docs/SAMPLE_DATA.md
 ```
 
 Testy kryjí rizikové jádro: normalizaci částek, otisk pro dedup, ASCII-fold, parsery

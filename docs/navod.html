@@ -25,6 +25,7 @@
   .badge { display:inline-block; padding:1px 8px; border-radius:10px; font-size:12px; }
   .NEW { background:#17402c; color:#6cd39a; }
   .CLAIMED { background:#43331a; color:#e8bf72; }
+  .GEN { background:#1c3a52; color:#79bde8; }
   .DUP { background:#452226; color:#f09a97; }
   footer { color:var(--dim); font-size:12px; margin-top:44px; border-top:1px solid var(--line); padding-top:12px; }
   a { color:var(--accent); }
@@ -66,7 +67,8 @@
 <table>
   <tr><th>Stav</th><th>Co znamená</th><th>Výchozí</th></tr>
   <tr><td><span class="badge NEW">NEW</span></td><td>Nový náklad, nikde jinde se nenašel.</td><td>jde do XML</td></tr>
-  <tr><td><span class="badge CLAIMED">ALREADY_CLAIMED</span></td><td>Stejné datum i částka už jsou v historii — nejspíš už jednou proplaceno.</td><td>vyřazeno</td></tr>
+  <tr><td><span class="badge CLAIMED">ALREADY_CLAIMED</span></td><td>Stejné datum i částka už jsou <strong>ve Fio výpisu</strong> — reálně proplaceno.</td><td>vyřazeno</td></tr>
+  <tr><td><span class="badge GEN">ALREADY_GENERATED</span></td><td>Už jsi to jednou vygeneroval (ledger / minulé XML), ale <strong>ve Fio výpisu to není</strong> — možná jsi XML nenahrál do banky. Zůstane v návrhu; když jsi ho neposlal, zapni ho.</td><td>vyřazeno (zapni ručně)</td></tr>
   <tr><td><span class="badge DUP">DUPLICATE_IN_BATCH</span></td><td>Týž náklad je v dávce dvakrát (typicky Fio i Revolut, nebo překryv období).</td><td>vyřazeno</td></tr>
 </table>
 
