@@ -13,9 +13,20 @@
 import { asciiFold } from './util.js';
 import type { LedgerEntry, LineItem } from './types.js';
 
+/**
+ * Vulgární zlomky (a jejich náhrady) se před porovnáním smažou. Vedoucí „můj
+ * podíl" ½/¾ uloží každý systém jinak: šablona `½ Oneplay…`, Fio výpis
+ * `? Oneplay…` (banka zlomek do zprávy pro příjemce nepustí a nahradí ho `?`),
+ * staré XML `Â½ Oneplay…` (dvojitě zakódované UTF-8). asciiFold jede přes NFD,
+ * které vulgární zlomky nerozkládá — bez téhle úpravy se řádek nespáruje
+ * a záloha by se stáhla podruhé. Zbytek textu (název + částka + měsíc) je
+ * na spárování jednoznačný.
+ */
+const SHARE_MARK = /[¼½¾⅐⅑⅒⅓⅔⅕⅖⅗⅘⅙⅚⅛⅜⅝⅞?�]/g;
+
 /** Normalizace textu pro porovnání pravidelných plateb s historií. */
 function normText(s: string | undefined): string {
-  return asciiFold(String(s ?? '')).toLowerCase().replace(/\s+/g, ' ').trim();
+  return asciiFold(String(s ?? '')).replace(SHARE_MARK, '').toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 export interface DedupReport {

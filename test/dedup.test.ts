@@ -92,4 +92,48 @@ describe('dedupe', () => {
     expect(rows[0].status).toBe('NEW');
     expect(rows[0].include).toBe(true);
   });
+
+  // Regrese: šablona píše vedoucí podíl ½/¾, Fio ho ve „Zprávě pro příjemce"
+  // nahradí `?` → dřív se řádek nespároval a Oneplay/O2/Rodinné se navrhly podruhé.
+  it('pravidelnou platbu se zlomkem (½/¾) spáruje s ? z Fio výpisu', () => {
+    const rec = (message: string, amount: number): LineItem => ({
+      id: `rec-${message}`, source: 'pravidelna', fingerprint: `rec|${message}`, status: 'NEW',
+      mandatory: false, include: true, amount, message,
+    });
+    const paid = (merchant: string, amount: number): LedgerEntry => ({
+      fingerprint: `2026-07-21|${amount}.00`, date_txn: '2026-07-21', amount, merchant, source: 'history',
+    });
+
+    const { rows, report } = dedupe(
+      [
+        rec('½ Oneplay Extra Sport (200 Kč) - červenec 2026', 200),
+        rec('¾ O2 Internet MAX 250 (300 Kč) - červenec 2026', 300),
+        rec('½ Rodinné sledování (50 Kč) - červenec 2026', 50),
+      ],
+      [
+        paid('? Oneplay Extra Sport (200 Kč) - červenec 2026', 200),
+        paid('? O2 Internet MAX 250 (300 Kč) - červenec 2026', 300),
+        paid('? Rodinné sledování (50 Kč) - červenec 2026', 50),
+      ],
+    );
+
+    expect(rows.map((r) => r.status)).toEqual(['ALREADY_CLAIMED', 'ALREADY_CLAIMED', 'ALREADY_CLAIMED']);
+    expect(rows.every((r) => r.include === false)).toBe(true);
+    expect(report).toMatchObject({ alreadyClaimed: 3, new: 0 });
+  });
+
+  it('smazání zlomku nezamění dvě různé ½ položky', () => {
+    const rec: LineItem = {
+      id: 'rec-3', source: 'pravidelna', fingerprint: 'rec|3', status: 'NEW',
+      mandatory: false, include: true, amount: 200,
+      message: '½ Oneplay Extra Sport (200 Kč) - červenec 2026',
+    };
+    // V historii je jen jiná ½ položka (Rodinné) — Oneplay se nesmí chytit.
+    const other: LedgerEntry = {
+      fingerprint: '2026-07-21|50.00', date_txn: '2026-07-21', amount: 50,
+      merchant: '? Rodinné sledování (50 Kč) - červenec 2026', source: 'history',
+    };
+    const { rows } = dedupe([rec], [other]);
+    expect(rows[0].status).toBe('NEW');
+  });
 });
