@@ -21,8 +21,9 @@ elektřina, plyn) se párovaly správně už dřív, protože zlomek nemají.
 **Ověřeno:** `test/dedup.test.ts` +2 regresní testy (½/¾ ↔ `?`; a že se dvě různé
 ½ položky nezamění). **83 testů (Vitest) zelených**, `tsc --noEmit` čistý.
 
-**Pozn. k nasazení:** živá appka běží na commitu `7441ea9` — tenhle fix se projeví
-až po `npm run deploy`. Push do `main` sám nenasazuje (FIO-import nemá CI).
+**Nasazeno:** `wrangler deploy` na bass443 (2026-07-22) s `COMMIT_SHA` — živě běží
+commit `1055efe`, Version `f5df567c-b951-4687-912e-e261da8d9c30`, ověřeno přes
+`/api/version`. FIO-import nemá CI, nasazuje se ručně (`npm run deploy`).
 
 ## 2026-07-21 — nasazeno na Cloudflare + brána k API
 

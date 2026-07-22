@@ -43,7 +43,7 @@
   <div class="card ok"><div class="k">Ověřeno živě</div><div class="v">ano</div></div>
   <div class="card ok"><div class="k">Nasazeno</div><div class="v">ano</div></div>
 </div>
-<p>Aplikace běží od začátku do konce: načte výpisy, odfiltruje už uplatněné náklady, dá tabulku ke kontrole a vygeneruje XML, které splňuje všechna tvrdě ověřená pravidla formátu Fio. Je <strong>nasazená na Cloudflare</strong> (účet bass443) za přihlašovací bránou. Zbývá ostrý běh na reálné měsíční dávce. <em>Poslední fix dedupu (22. 7.) čeká na redeploy — v běžící verzi zatím není.</em></p>
+<p>Aplikace běží od začátku do konce: načte výpisy, odfiltruje už uplatněné náklady, dá tabulku ke kontrole a vygeneruje XML, které splňuje všechna tvrdě ověřená pravidla formátu Fio. Je <strong>nasazená na Cloudflare</strong> (účet bass443) za přihlašovací bránou, živě běží commit <code>1055efe</code> (22. 7. 2026, včetně posledního fixu dedupu). Zbývá ostrý běh na reálné měsíční dávce.</p>
 
 <h2>Proč to vzniklo</h2>
 <p>Rozúčtování domácích nákladů se dělalo ručně: projít dva výpisy, přepsat je do příkazů, uhlídat, aby se stejný náklad nestáhl podruhé (překryv období, náklad ve Fiu i Revolutu, opakovaný import). Ruční kontrola nad ~40 řádky měsíčně je zdlouhavá a chybová. Appka tuhle práci dělá za pár minut a duplicitu označí sama.</p>
@@ -93,7 +93,7 @@
 <p>Cloudflare Workers i D1 se v tomhle objemu vejdou do bezplatné hladiny. Jediná placená položka je AI kategorizace — model třídy Haiku, řádově desítky transakcí měsíčně, tedy zanedbatelné jednotky korun. Vypnutím zaškrtávátka jde na nulu.</p>
 
 <h2>Další krok</h2>
-<p>Naplnit ledger historií účtu příjemce a projet jednu reálnou měsíční dávku vedle dosavadního ručního postupu — porovnat výsledky, teprve pak přepnout naostro. Zároveň nasadit poslední fix dedupu (<code>npm run deploy</code>), aby živá verze odpovídala main.</p>
+<p>Naplnit ledger historií účtu příjemce a projet jednu reálnou měsíční dávku vedle dosavadního ručního postupu — porovnat výsledky, teprve pak přepnout naostro.</p>
 
 <footer>FIO-import · manažerský přehled</footer>
 </div>
