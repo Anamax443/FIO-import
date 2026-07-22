@@ -104,7 +104,7 @@ Pravidelné ───┘   (společný      (proti historii   (ruční krok)   (
     <div class="two">
       <div class="panel">
         <h3>Hotové</h3>
-        <p class="big ok">83 / 83</p>
+        <p class="big ok">94 / 94</p>
         <p style="margin:6px 0 0">testů na rizikovém jádru — parsery, otisk, dedup, formát XML. Celá pipeline proběhla živě od výpisu po platný soubor a appka běží nasazená na Cloudflare.</p>
       </div>
       <div class="panel">
@@ -121,8 +121,8 @@ Pravidelné ───┘   (společný      (proti historii   (ruční krok)   (
     <ul>
       <li><strong>Cloudflare Workers</strong> — jeden Worker obsluhuje API i uživatelské rozhraní.</li>
       <li><strong>D1</strong> — databáze historie uplatněných nákladů, šablony a auditu dávek.</li>
-      <li><strong>Claude Haiku</strong> — dopisuje kategorie k Revolut transakcím; volitelné, výpadek appku nezastaví.</li>
-      <li>Provoz se vejde do bezplatné hladiny, AI stojí jednotky korun měsíčně.</li>
+      <li><strong>AI kategorizace</strong> — dopisuje kategorie k Revolut transakcím. Přepínatelný backend: <strong>Cloudflare Workers AI zdarma</strong> (výchozí, data zůstanou na Cloudflare) nebo placený Claude Haiku; volitelné, výpadek appku nezastaví.</li>
+      <li>Provoz se vejde do bezplatné hladiny — včetně AI (Workers AI free tier).</li>
     </ul>
   </div>
 

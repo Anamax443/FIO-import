@@ -10,7 +10,7 @@ aktualizuj ho při prvním reálném nasazení.
 
 - **Node.js 22+** (LTS), npm
 - Cloudflare účet s právem na Workers + D1 (produkce; lokální vývoj ho nepotřebuje)
-- účet u Anthropicu pro `ANTHROPIC_API_KEY` (volitelné — AI vrstva je best-effort)
+- účet u Anthropicu pro `ANTHROPIC_API_KEY` — **jen pro placený AI backend** (Claude); free backend (Workers AI) běží zdarma přes binding, bez klíče
 
 `wrangler`, `typescript` a `vitest` se instalují jako devDependencies, globálně nic netřeba.
 
@@ -25,8 +25,11 @@ npm install
 ## 3. Konfigurace a secrety
 
 - lokálně: zkopíruj `.dev.vars.example` → `.dev.vars` a vyplň `ANTHROPIC_API_KEY`
-  (bez něj appka funguje, jen bez AI kategorizace)
-- produkce: `npx wrangler secret put ANTHROPIC_API_KEY`
+  (jen pro placený backend; bez něj jede free Workers AI)
+- produkce: `npx wrangler secret put ANTHROPIC_API_KEY` (jen pro placený backend)
+- **AI backend** řídí `AI_PROVIDER` ve `wrangler.jsonc` → `vars`: `workers-ai` (zdarma,
+  výchozí), `anthropic` (placený, s automatickým free fallbackem) nebo `off`. Workers AI
+  používá binding `ai` (už ve `wrangler.jsonc`) a běží jen `--remote`/v produkci.
 - konstanty příkazu (čísla účtů, `bankCode`, `paymentType`) jsou ve `wrangler.jsonc` → `vars`
 
 **D1 databáze** — volitelná, ale bez ní si appka nepamatuje historii mezi běhy:
@@ -53,7 +56,7 @@ curl -X POST http://127.0.0.1:8788/api/ledger/import \
 
 ```
 npm run typecheck   # tsc --noEmit
-npm test            # vitest — 83 testů, akceptační čísla z docs/SAMPLE_DATA.md
+npm test            # vitest — 94 testů, akceptační čísla z docs/SAMPLE_DATA.md
 ```
 
 Testy kryjí rizikové jádro: normalizaci částek, otisk pro dedup, ASCII-fold, parsery
@@ -66,6 +69,10 @@ s referenční transakcí znak po znaku).
 npx wrangler dev --local --port 8788
 # UI na http://127.0.0.1:8788
 ```
+
+> **AI vrstva lokálně:** Workers AI v `--local` neběží (model je na GPU síti Cloudflare).
+> Pro test free backendu použij `npx wrangler dev --remote`, nebo ho ověř až v produkci
+> přes `/api/ai-check`.
 
 Rychlý smoke test API bez UI:
 

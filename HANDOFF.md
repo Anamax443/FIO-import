@@ -2,6 +2,28 @@
 
 Append-only. Nejnovější záznam nahoru. Slouží k pokračování z jiného počítače / po pauze.
 
+## 2026-07-22 — AI vrstva: přepínatelný backend + free Cloudflare Workers AI
+
+AI kategorizace jela jen na Claude Haiku (Anthropic), ale sdílená Anthropic org je
+**bez kreditu** → vrstva reálně neběžela. Přidán **přepínatelný backend**:
+- `anthropic` — Claude Haiku 4.5 (placený, přesnější čeština),
+- `workers-ai` — Cloudflare Workers AI, Llama 3.1 8B (**zdarma**, nativní `env.AI`
+  binding, data neopustí Cloudflare; free 10k neuronů/den ≈ ~50 klasifikací/den).
+
+Řídí `AI_PROVIDER` (`anthropic` | `workers-ai` | `off`; prázdné = auto). „Dle úhrady":
+placený backend primárně, a když spadne (kredit/billing/výpadek), vrstva se **sama
+přepne na free**. Teď je ve `wrangler.jsonc` `AI_PROVIDER=workers-ai` (Anthropic bez
+kreditu); po dobití stačí přepnout na `anthropic` (placený s free fallbackem).
+
+`ai.ts` je nově tenká abstrakce (`providerChain` + `classify(rows, ctx)` →
+`{rows, provider}`); Workers AI dělá JSON přes prompt s tolerantním parsováním
+(Workers AI nemá napříč verzemi zaručený `response_format`). `/api/ai-check` je
+provider-aware, `/api/process` vrací `aiProvider`. Binding `ai` + var `AI_PROVIDER`
+ve `wrangler.jsonc`; Workers AI běží jen `--remote`/v produkci (lokálně model není).
+
+**Ověřeno:** `test/ai.test.ts` (11 testů — provider chain, enrich, fenced JSON,
+best-effort, fallback přes mock Anthropicu). **94 testů zelených**, `tsc --noEmit` čistý.
+
 ## 2026-07-22 — dedup pravidelných plateb: normalizace zlomkového podílu
 
 Textový dedup pravidelných plateb (SPEC §8, přidaný 2026-07-22) padal na **vedoucím

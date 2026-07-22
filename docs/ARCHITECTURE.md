@@ -13,7 +13,7 @@ Zadání je v [SPEC.md](SPEC.md), ověřená vstupní data a akceptační čísl
 | Runtime | **Cloudflare Workers** (TS, `nodejs_compat`) | jeden Worker, API + statické UI |
 | Data | **D1** (SQLite) | ledger uplatněných nákladů, šablona pravidelných, audit dávek |
 | UI | statické `public/` (binding `ASSETS`) | vanilla JS moduly, IT-ops dark, i18n CS/EN |
-| AI | **Claude Haiku 4.5** (`claude-haiku-4-5`) přes `@anthropic-ai/sdk` | kategorizace/čištění; best-effort, neblokuje |
+| AI | **přepínatelné**: Cloudflare Workers AI (Llama 3.1 8B, zdarma) / Claude Haiku 4.5 (placený) | kategorizace/čištění; best-effort, `AI_PROVIDER` volí backend |
 | Testy | **Vitest** | rizikové jádro: parsery, otisk, XML, dedup |
 | Secrets | `ANTHROPIC_API_KEY` | `wrangler secret put` / `.dev.vars` |
 
@@ -47,14 +47,14 @@ Minulé XML ────────┘        └─ D1: šablona pravidelných
 | `recurring.ts` | sestavení pravidelných ze šablony + carry-over částek |
 | `dedup.ts` | statusy NEW / ALREADY_CLAIMED / DUPLICATE_IN_BATCH (shody se nemažou, jen `include=false`) |
 | `xml.ts` | **buildXml** + `validate` — CRLF, žádné komentáře, pevné pořadí elementů, desetinná tečka |
-| `ai.ts` | Claude Haiku: category, note, claimable, čištění obchodníka |
+| `ai.ts` | AI kategorizace: category, note, claimable, čištění obchodníka; přepínatelný backend (`providerChain` + fallback) |
 | `index.ts` | Worker: routy `/api/*` + statické UI |
 
 ## API
 
 | Metoda | Cesta | Vstup | Výstup |
 |--------|-------|-------|--------|
-| POST | `/api/process` | `{date, fio?, revolut?, historyCsv?, prevXml?, useAi?}` | `{date, rows[], report, historySize, aiUsed}` |
+| POST | `/api/process` | `{date, fio?, revolut?, historyCsv?, prevXml?, useAi?}` | `{date, rows[], report, historySize, aiUsed, aiProvider}` |
 | POST | `/api/generate` | `{date, rows[]}` — generuje se jen z `include=true` | `.xml` + hlavičky `x-fio-count`, `x-fio-total` |
 | POST | `/api/ledger/import` | `{csv}` — pohyby účtu příjemce | `{imported}` |
 | GET | `/api/template` | — | `{template[]}` (šablona pravidelných plateb) |
@@ -86,13 +86,24 @@ a limit délky zprávy (140 znaků).
 
 ## AI vrstva
 
-Vstup: transakce bez kategorie (hlavně Revolut). Výstup (structured outputs, striktní JSON):
-`category`, `note`, `claimable`, vyčištěný `merchant`. `claimable=false` (Netflix,
-předplatné, převody sobě) → řádek se defaultně vyřadí. Best-effort: bez `ANTHROPIC_API_KEY`,
-při chybě nebo timeoutu (20 s) pipeline pokračuje beze změny.
+Vstup: transakce bez kategorie (hlavně Revolut). Výstup: `category`, `note`, `claimable`,
+vyčištěný `merchant`. `claimable=false` (Netflix, předplatné, převody sobě) → řádek se
+defaultně vyřadí. Best-effort: při chybě, chybějícím backendu nebo timeoutu (20 s)
+pipeline pokračuje beze změny.
 
-Model **`claude-haiku-4-5`** — klasifikace je krátká a levná; Haiku 4.5 nepodporuje
-`effort` ani adaptive thinking, což tu nevadí.
+**Přepínatelný backend (`AI_PROVIDER`):**
+- `anthropic` — Claude Haiku 4.5 (`claude-haiku-4-5`) přes `@anthropic-ai/sdk`,
+  structured outputs (striktní JSON schema). Placený; přesnější čeština.
+- `workers-ai` — Cloudflare Workers AI, Llama 3.1 8B (`@cf/meta/llama-3.1-8b-instruct`)
+  přes nativní `env.AI`. **Zdarma** (10k neuronů/den), data neopustí Cloudflare;
+  JSON přes prompt s tolerantním parsováním (Workers AI nemá napříč verzemi zaručený
+  `response_format`). Lokálně jen `wrangler dev --remote`.
+- `off` — vrstva se přeskočí.
+
+Prázdné `AI_PROVIDER` = auto (placený když je klíč, jinak free). **„Dle úhrady":**
+`providerChain` staví pořadí placený → free, takže když placený backend spadne
+(kredit/billing/výpadek), `classify` se sama přepne na free. `/api/process` vrací
+`aiProvider` (který backend reálně běžel), `/api/ai-check` je provider-aware.
 
 ## Datový model (D1) — viz [`schema.sql`](../schema.sql)
 
@@ -112,3 +123,4 @@ dedup jede jen z podkladů nahraných v requestu), jen si nepamatuje historii me
 | Cizoměnový Revolut řádek | Defaultně `include=false` + upozornění | Do banky jde CZK; ekvivalent, který reálně padl, musí doplnit uživatel |
 | Zápis do D1 při generování | Selhání se loguje, ale XML se vrátí | Audit není důvod shodit celou dávku |
 | Dedup pravidelných plateb | Porovnání **podle textu zprávy**, ne otisku; text se normalizuje (smaž `½/¾/?/�`) | Pravidelné nemají datum txn; vedoucí zlomkový podíl banka ve zprávě nahradí `?` (2026-07-22) |
+| AI backend | Přepínatelný (`AI_PROVIDER`), placený → free fallback | Sdílená Anthropic org bez kreditu; Workers AI je zdarma, nativní a data zůstanou na CF (2026-07-22) |

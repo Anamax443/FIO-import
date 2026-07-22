@@ -15,25 +15,25 @@
 Detailní zadání: [docs/SPEC.md](docs/SPEC.md). Uživatelský návod: [docs/navod.html](docs/navod.html).
 
 ## Stav
-Jádro **hotové a ověřené**: 83 testů (Vitest), typecheck čistý, celá pipeline proběhla živě
+Jádro **hotové a ověřené**: 94 testů (Vitest), typecheck čistý, celá pipeline proběhla živě
 od výpisu po platný soubor; appka je **nasazená na Cloudflare** (bass443). Zbývá ostrý běh
 na reálné měsíční dávce — viz [HANDOFF.md](HANDOFF.md).
 
 ## Stack
 - **Cloudflare Workers** (TypeScript, `nodejs_compat`) — API + statické UI v jednom Workeru
 - **D1** (SQLite) — ledger uplatněných nákladů, šablona pravidelných plateb, audit dávek (volitelná)
-- **Claude Haiku 4.5** (`claude-haiku-4-5`) — volitelná kategorizace Revolut řádků, best-effort
+- **AI kategorizace** Revolut řádků (volitelná, best-effort) — **přepínatelný backend**: Cloudflare Workers AI (Llama 3.1 8B, zdarma, nativní, výchozí) nebo Claude Haiku 4.5 (placený); řídí `AI_PROVIDER`, placený s automatickým fallbackem na free
 - **Vitest** — testy rizikového jádra (parsery, otisk, dedup, formát XML)
 
 ## Požadavky
 - Node.js 22+
 - Cloudflare účet s D1 (jen pro produkci; lokální vývoj ho nepotřebuje)
-- `ANTHROPIC_API_KEY` (jen pro AI vrstvu; bez něj pipeline běží dál)
+- `ANTHROPIC_API_KEY` **jen pro placený AI backend** (Claude Haiku); free backend (Cloudflare Workers AI) běží bez klíče. Bez obojího pipeline běží dál.
 
 ## Spuštění / build
 ```
 npm install
-npm test            # 83 testů
+npm test            # 94 testů
 npm run typecheck
 npx wrangler dev --local --port 8788   # UI na http://127.0.0.1:8788
 ```

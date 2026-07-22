@@ -15,25 +15,25 @@
 Full specification (Czech): [docs/SPEC.md](docs/SPEC.md). User guide: [docs/navod.en.html](docs/navod.en.html).
 
 ## Status
-The core is **done and verified**: 83 tests (Vitest), clean typecheck, and the whole pipeline
+The core is **done and verified**: 94 tests (Vitest), clean typecheck, and the whole pipeline
 ran live from statement to a valid file; the app is **deployed on Cloudflare** (bass443).
 A first real monthly batch remains — see [HANDOFF.md](HANDOFF.md) (Czech).
 
 ## Stack
 - **Cloudflare Workers** (TypeScript, `nodejs_compat`) — API and static UI in one Worker
 - **D1** (SQLite) — claimed-cost ledger, recurring template, batch audit (optional)
-- **Claude Haiku 4.5** (`claude-haiku-4-5`) — optional categorisation of Revolut rows, best-effort
+- **AI categorisation** of Revolut rows (optional, best-effort) — **switchable backend**: Cloudflare Workers AI (Llama 3.1 8B, free, native, default) or Claude Haiku 4.5 (paid); driven by `AI_PROVIDER`, paid with automatic fallback to free
 - **Vitest** — tests for the risky core (parsers, fingerprint, dedup, XML format)
 
 ## Requirements
 - Node.js 22+
 - A Cloudflare account with D1 (production only; local development does not need it)
-- `ANTHROPIC_API_KEY` (AI layer only; the pipeline runs without it)
+- `ANTHROPIC_API_KEY` **for the paid AI backend only** (Claude Haiku); the free backend (Cloudflare Workers AI) needs no key. Without either, the pipeline still runs.
 
 ## Run / build
 ```
 npm install
-npm test            # 83 tests
+npm test            # 94 tests
 npm run typecheck
 npx wrangler dev --local --port 8788   # UI at http://127.0.0.1:8788
 ```

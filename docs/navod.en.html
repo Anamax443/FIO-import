@@ -102,6 +102,7 @@
 
 <h2>4. AI categorisation</h2>
 <p>Revolut transactions carry no category or note. With <strong>Use AI categorisation</strong> ticked, the model fills in a category, a note and a cleaned-up merchant name, and suggests excluding things that are not split (Netflix, transfers to self).</p>
+<p>It runs on <strong>Cloudflare Workers AI for free</strong> by default (nothing to set up, and the data stays on Cloudflare). If the paid Claude backend is configured and runs out of credit, the app falls back to the free one automatically.</p>
 <p>It is an assistant, not an authority — you can overwrite everything. If the AI is unavailable, the app carries on and says so.</p>
 
 <h2>5. When something looks wrong</h2>

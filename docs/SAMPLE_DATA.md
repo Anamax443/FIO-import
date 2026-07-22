@@ -64,4 +64,4 @@ Formát celého souboru: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?
 `accountFrom 2401442781` → `accountTo 2900203312` / `bankCode 2010` · `paymentType 431001` · `currency CZK`.
 
 ## Pozn. k AI modelu
-Model string ověř v konzoli Anthropicu (Haiku) před nasazením — může se lišit od hodnoty ve specifikaci.
+Backend je přepínatelný (`AI_PROVIDER`): **free** Cloudflare Workers AI `@cf/meta/llama-3.1-8b-instruct` (nativní binding, výchozí) nebo **placený** Claude Haiku. Model string Haiku ověř v konzoli Anthropicu před nasazením — může se lišit od hodnoty ve specifikaci.
