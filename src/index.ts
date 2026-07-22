@@ -72,6 +72,9 @@ export default {
         if (url.searchParams.get('defaults') === '1') return json({ template: RECURRING_TEMPLATE, source: 'default' });
         return json({ template: await loadTemplate(env), source: env.DB ? 'db' : 'default' });
       }
+      if (url.pathname === '/api/ledger' && request.method === 'GET') {
+        return json({ ledger: await loadLedger(env), source: env.DB ? 'db' : 'none' });
+      }
       if (url.pathname === '/api/process' && request.method === 'POST') return await handleProcess(request, env);
       if (url.pathname === '/api/generate' && request.method === 'POST') return await handleGenerate(request, env);
       if (url.pathname === '/api/ledger/import' && request.method === 'POST') return await handleLedgerImport(request, env);
@@ -138,6 +141,8 @@ async function handleProcess(request: Request, env: Env): Promise<Response> {
     withRecurring,
     fromMovements: movements.expenses.length,
     historySize: history.length,
+    // Celá historie k prohlížení v UI (dohledání, kdy se co uplatnilo).
+    history: history.map((h) => ({ date_txn: h.date_txn, amount: h.amount, merchant: h.merchant, source: h.source })),
     aiUsed: body.useAi !== false && Boolean(env.ANTHROPIC_API_KEY),
   });
 }

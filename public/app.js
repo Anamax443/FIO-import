@@ -1,5 +1,6 @@
 import { detectKind } from './detect.js';
 import { STRINGS } from './i18n.js';
+import { buildCsv, buildReportHtml, summarize } from './report.js';
 
 const $ = (id) => document.getElementById(id);
 const TEXTAREAS = ['revolut', 'historyCsv', 'prevXml'];
@@ -8,6 +9,7 @@ let lang = localStorage.getItem('fio-lang') || 'cs';
 let t = STRINGS[lang];
 let rows = [];
 let report = { new: 0, alreadyClaimed: 0, duplicateInBatch: 0 };
+let history = [];   // celá historie pro dedup — k prohlížení v záložce Historie
 
 /* ---------- i18n ---------- */
 
@@ -32,6 +34,7 @@ function applyLang() {
   renderHelp();
   if (template.length) renderTemplate();
   render();
+  renderHistory();
 }
 
 /* ---------- přístup ---------- */
@@ -214,6 +217,7 @@ function updateSummary() {
   $('sumClaimed').textContent = rows.filter((r) => r.status === 'ALREADY_CLAIMED').length;
   $('sumDup').textContent = rows.filter((r) => r.status === 'DUPLICATE_IN_BATCH').length;
   $('generate').disabled = active.length === 0;
+  renderDash();   // dashboard drží krok s ručními úpravami (include, částka)
 }
 
 /* ---------- šablona pravidelných / mandatorních plateb ---------- */
@@ -446,7 +450,10 @@ async function process() {
 
     rows = data.rows;
     report = data.report;
+    if (Array.isArray(data.history)) history = data.history;
     render();
+    renderDash();
+    renderHistory();
 
     const notes = [t.historyInfo(data.historySize)];
     if (data.withRecurring === false) notes.push(t.recurringOff);
@@ -495,9 +502,182 @@ async function generate() {
   }
 }
 
+/* ---------- přehled (dashboard) ---------- */
+
+function grpTable(groups, keyLabelFn = (k) => k) {
+  if (groups.length === 0) return `<p class="hint">—</p>`;
+  return `<table class="grp">
+    <thead><tr><th>${escapeHtml(t.dashKey)}</th><th class="num">${escapeHtml(t.dashActive)}</th><th class="num">${escapeHtml(t.dashSum)}</th></tr></thead>
+    <tbody>${groups.map((g) => `
+      <tr><td>${escapeHtml(keyLabelFn(g.key))}</td><td class="num">${g.active}/${g.count}</td><td class="num">${fmt(g.total)}</td></tr>`).join('')}
+    </tbody></table>`;
+}
+
+function renderDash() {
+  const empty = $('dashEmpty');
+  const body = $('dashBody');
+  if (rows.length === 0) {
+    empty.textContent = t.dashEmpty;
+    empty.classList.remove('hidden');
+    body.classList.add('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+  body.classList.remove('hidden');
+
+  const s = summarize(rows);
+  $('dashCards').innerHTML = [
+    [t.sumCount, s.activeCount],
+    [t.sumTotal, `${fmt(s.total)} CZK`],
+    [t.dashMandatory, `${s.mandatory} · ${fmt(s.mandatoryTotal)} CZK`],
+    [t.sumClaimed, s.claimed],
+    [t.sumDup, s.duplicate],
+  ].map(([k, v]) => `<div class="card"><div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(String(v))}</div></div>`).join('');
+
+  $('dashSource').innerHTML = grpTable(s.bySource, (k) => (k === 'pravidelna' ? t.srcRecurring : k));
+  $('dashCategory').innerHTML = grpTable(s.byCategory);
+}
+
+/* ---------- export ---------- */
+
+function exportLabels() {
+  return {
+    locale: lang === 'cs' ? 'cs-CZ' : 'en-US',
+    lang,
+    source: t.colSource, status: t.colStatus, date: t.colDate, category: t.colCategory,
+    amount: t.colAmount, include: t.colInclude, message: t.colMessage,
+    yes: lang === 'cs' ? 'ano' : 'yes', no: lang === 'cs' ? 'ne' : 'no',
+    statusMap: t.status,
+    reportTitle: t.reportTitle, due: t.date, generatedAt: t.reportGenerated, version: t.commit,
+    active: t.dashActive, sum: t.dashSum, allRows: t.reportAllRows,
+    activeOrders: t.sumCount, checksum: t.sumTotal, mandatory: t.dashMandatory,
+    claimed: t.sumClaimed, duplicate: t.sumDup, bySource: t.bySource, byCategory: t.byCategory,
+  };
+}
+
+function download(name, mime, content) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function reportMeta() {
+  return {
+    date: $('date').value,
+    now: new Intl.DateTimeFormat(lang === 'cs' ? 'cs-CZ' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' })
+      .format(new Date(Date.now() + clockOffset)),
+    commit: $('commit').textContent,
+  };
+}
+
+function setupExport() {
+  const guard = () => {
+    if (rows.length === 0) { showMessage(t.dashEmpty, 'warn'); return false; }
+    return true;
+  };
+
+  $('expCsv').addEventListener('click', () => {
+    if (!guard()) return;
+    download(`fio-prehled-${$('date').value}.csv`, 'text/csv;charset=utf-8', buildCsv(rows, exportLabels()));
+  });
+
+  $('expHtml').addEventListener('click', () => {
+    if (!guard()) return;
+    download(`fio-prehled-${$('date').value}.html`, 'text/html;charset=utf-8',
+      buildReportHtml(rows, summarize(rows), exportLabels(), reportMeta()));
+  });
+
+  $('expPdf').addEventListener('click', () => {
+    if (!guard()) return;
+    // Bez knihoven: otevři report v novém okně a nech uživatele „Uložit jako PDF".
+    const html = buildReportHtml(rows, summarize(rows), exportLabels(), reportMeta());
+    const w = window.open('', '_blank');
+    if (!w) { showMessage(t.popupBlocked, 'err'); return; }
+    w.document.write(html);
+    w.document.close();
+    w.addEventListener('load', () => { w.focus(); w.print(); });
+  });
+}
+
+/* ---------- historie (dohledání uplatněného) ---------- */
+
+async function loadLedger() {
+  try {
+    const res = await api('/api/ledger');
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || res.statusText);
+    // Uploadovaná historie z posledního zpracování má přednost, doplní se databáze.
+    const seen = new Set(history.map((h) => `${h.date_txn}|${h.amount}|${h.source}`));
+    for (const e of data.ledger ?? []) {
+      const k = `${e.date_txn}|${e.amount}|${e.source}`;
+      if (!seen.has(k)) { history.push(e); seen.add(k); }
+    }
+    renderHistory();
+    showMessage(t.histLoaded((data.ledger ?? []).length), data.source === 'none' ? 'warn' : 'ok');
+  } catch (err) {
+    showMessage(String(err.message ?? err), 'err');
+  }
+}
+
+function visibleHistory() {
+  const text = fold($('histText').value.trim());
+  const from = $('histFrom').value;
+  const to = $('histTo').value;
+  const min = $('histMin').value === '' ? null : Number($('histMin').value);
+  const max = $('histMax').value === '' ? null : Number($('histMax').value);
+
+  return history.filter((h) => {
+    if (from && (h.date_txn ?? '') < from) return false;
+    if (to && (h.date_txn ?? '') > to) return false;
+    if (min !== null && h.amount < min) return false;
+    if (max !== null && h.amount > max) return false;
+    if (text && !fold(`${h.merchant ?? ''} ${h.date_txn ?? ''} ${h.source ?? ''}`).includes(text)) return false;
+    return true;
+  }).sort((a, b) => (b.date_txn ?? '').localeCompare(a.date_txn ?? ''));
+}
+
+function renderHistory() {
+  const list = visibleHistory();
+  const tbody = $('histRows');
+
+  if (history.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="hint">${escapeHtml(t.histNone)}</td></tr>`;
+  } else if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="hint">${escapeHtml(t.noMatch)}</td></tr>`;
+  } else {
+    tbody.innerHTML = list.slice(0, 2000).map((h) => `
+      <tr>
+        <td>${escapeHtml(h.date_txn ?? '')}</td>
+        <td class="num">${fmt(h.amount)}</td>
+        <td><span class="badge src">${escapeHtml(h.source ?? '')}</span></td>
+        <td>${escapeHtml(h.merchant ?? '')}</td>
+      </tr>`).join('') + (list.length > 2000
+      ? `<tr><td colspan="4" class="hint">${escapeHtml(t.histCapped(list.length))}</td></tr>` : '');
+  }
+
+  const total = list.reduce((s, h) => s + (Number(h.amount) || 0), 0);
+  $('histCount').textContent = `${list.length} / ${history.length}`;
+  $('histTotal').textContent = fmt(Math.round(total * 100) / 100);
+}
+
+function setupHistory() {
+  $('histLoad').addEventListener('click', loadLedger);
+  for (const id of ['histText', 'histFrom', 'histTo', 'histMin', 'histMax']) {
+    $(id).addEventListener('input', renderHistory);
+  }
+  $('histClear').addEventListener('click', () => {
+    for (const id of ['histText', 'histFrom', 'histTo', 'histMin', 'histMax']) $(id).value = '';
+    renderHistory();
+  });
+}
+
 /* ---------- záložky ---------- */
 
-const TABS = ['davka', 'pravidelne', 'napoveda'];
+const TABS = ['davka', 'prehled', 'historie', 'pravidelne', 'napoveda'];
 
 function showTab(name) {
   const tab = TABS.includes(name) ? name : TABS[0];
@@ -713,6 +893,8 @@ function init() {
   setupDropZones();
   setupBulk();
   setupTemplate();
+  setupExport();
+  setupHistory();
   $('date').addEventListener('change', updateTplSummary);
 
   startHeaderClock();

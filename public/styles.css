@@ -51,6 +51,11 @@ main { padding: 20px; max-width: 1500px; }
 .cards .k { color: var(--fg-dim); font-size: 11px; text-transform: uppercase; letter-spacing: .7px; }
 .cards .v { font-family: var(--mono); font-size: 20px; font-weight: 600; margin-top: 4px; }
 
+/* Přehled */
+.dash-h { font-size: 13px; text-transform: uppercase; letter-spacing: .7px; color: var(--fg-dim); margin: 18px 0 8px; }
+table.grp { width: 100%; }
+table.grp td, table.grp th { padding: 5px 8px; }
+
 /* Nápověda */
 .help h3 { font-size: 14px; margin: 20px 0 4px; color: var(--accent); }
 .help h3:first-child { margin-top: 0; }

@@ -27,6 +27,8 @@
 
   <nav class="tabs">
     <button class="tab" data-tab="davka" data-i18n-title="tabBatchTip"><span data-i18n="tabBatch"></span></button>
+    <button class="tab" data-tab="prehled" data-i18n-title="tabDashTip"><span data-i18n="tabDash"></span></button>
+    <button class="tab" data-tab="historie" data-i18n-title="tabHistoryTip"><span data-i18n="tabHistory"></span></button>
     <button class="tab" data-tab="pravidelne" data-i18n-title="tabRecurringTip"><span data-i18n="tabRecurring"></span></button>
     <button class="tab" data-tab="napoveda" data-i18n-title="tabHelpTip"><span data-i18n="tabHelp"></span></button>
   </nav>
@@ -187,6 +189,71 @@
           <button id="generate" class="primary" disabled data-i18n-title="generateTip">
             <span data-i18n="generate"></span>
           </button>
+        </div>
+      </section>
+    </div>
+
+    <!-- ───────────── Přehled + export ───────────── -->
+    <div class="page hidden" id="page-prehled">
+      <section>
+        <div class="row" style="justify-content:space-between; align-items:baseline">
+          <h2 data-i18n="tabDash" style="margin:0">Přehled</h2>
+          <div class="row" style="gap:8px">
+            <button id="expCsv" data-i18n-title="expCsvTip"><span data-i18n="expCsv"></span></button>
+            <button id="expHtml" data-i18n-title="expHtmlTip"><span data-i18n="expHtml"></span></button>
+            <button id="expPdf" data-i18n-title="expPdfTip"><span data-i18n="expPdf"></span></button>
+          </div>
+        </div>
+
+        <div id="dashEmpty" class="hint" style="margin-top:12px"></div>
+        <div id="dashBody" class="hidden">
+          <div class="cards" id="dashCards"></div>
+          <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">
+            <div><h3 class="dash-h" data-i18n="bySource"></h3><div id="dashSource"></div></div>
+            <div><h3 class="dash-h" data-i18n="byCategory"></h3><div id="dashCategory"></div></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ───────────── Historie (dohledání uplatněného) ───────────── -->
+    <div class="page hidden" id="page-historie">
+      <section>
+        <h2 data-i18n="tabHistory">Historie</h2>
+        <p class="hint" data-i18n="histHelp" style="margin:0 0 14px"></p>
+
+        <div class="row" style="margin-bottom:12px">
+          <button id="histLoad" data-i18n-title="histLoadTip"><span data-i18n="histLoad"></span></button>
+          <span class="hint" id="histSource"></span>
+        </div>
+
+        <div class="bulk">
+          <input type="search" id="histText" data-i18n-placeholder="histTextPh" data-i18n-title="histTextTip" style="min-width:220px">
+          <span class="bulk-label" data-i18n="histFrom"></span>
+          <input type="date" id="histFrom">
+          <span class="bulk-label" data-i18n="histTo"></span>
+          <input type="date" id="histTo">
+          <span class="sep">|</span>
+          <input type="number" id="histMin" step="0.01" data-i18n-placeholder="fMinPh">
+          <input type="number" id="histMax" step="0.01" data-i18n-placeholder="fMaxPh">
+          <button id="histClear"><span data-i18n="clearFilters"></span></button>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th data-i18n="colDate"></th>
+              <th class="num" data-i18n="colAmount"></th>
+              <th data-i18n="colSource"></th>
+              <th data-i18n="histText2"></th>
+            </tr></thead>
+            <tbody id="histRows"></tbody>
+          </table>
+        </div>
+
+        <div class="summary">
+          <span class="item"><span class="label" data-i18n="histShown"></span> <b id="histCount">0</b></span>
+          <span class="item"><span class="label" data-i18n="histSum"></span> <b id="histTotal">0</b> CZK</span>
         </div>
       </section>
     </div>
