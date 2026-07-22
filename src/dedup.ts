@@ -10,7 +10,13 @@
  * třetí zůstane NEW.
  */
 
+import { asciiFold } from './util.js';
 import type { LedgerEntry, LineItem } from './types.js';
+
+/** Normalizace textu pro porovnání pravidelných plateb s historií. */
+function normText(s: string | undefined): string {
+  return asciiFold(String(s ?? '')).toLowerCase().replace(/\s+/g, ' ').trim();
+}
 
 export interface DedupReport {
   new: number;
@@ -29,12 +35,34 @@ export function dedupe(rows: LineItem[], history: LedgerEntry[]): DedupResult {
     remaining.set(h.fingerprint, (remaining.get(h.fingerprint) ?? 0) + 1);
   }
 
+  // Pravidelné platby nemají datum transakce, takže je otisk datum+částka nechytí.
+  // Porovnávají se proto podle TEXTU (obsahuje měsíc i částku, je jednoznačný) —
+  // když už tenhle měsíc zálohu zaplatíš, přijde na účet příjemce se stejným textem.
+  const historyText = new Map<string, number>();
+  for (const h of history) {
+    const k = normText(h.merchant);
+    if (k) historyText.set(k, (historyText.get(k) ?? 0) + 1);
+  }
+
   const seenInBatch = new Map<string, number>();
   const report: DedupReport = { new: 0, alreadyClaimed: 0, duplicateInBatch: 0 };
 
   const out = rows.map((row) => {
-    // Pravidelné platby z výpisu nevznikají — dedup se jich netýká.
+    // Pravidelné platby — dedup podle textu zprávy proti historii.
     if (row.source === 'pravidelna') {
+      const k = normText(row.message);
+      const left = historyText.get(k) ?? 0;
+      if (k && left > 0) {
+        historyText.set(k, left - 1);
+        report.alreadyClaimed++;
+        const when = history.find((h) => normText(h.merchant) === k);
+        return {
+          ...row,
+          status: 'ALREADY_CLAIMED' as const,
+          include: false,
+          note: joinNote(row.note, `Už uplatněno${when ? ` (${when.date_txn})` : ''} — tuhle zálohu jsi tenhle měsíc nejspíš už zaplatil. Pokud ne, zapni řádek ručně.`),
+        };
+      }
       report.new++;
       return row;
     }

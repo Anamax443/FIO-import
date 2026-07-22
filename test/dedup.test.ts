@@ -49,14 +49,47 @@ describe('dedupe', () => {
     expect(rows[1].include).toBe(false); // uživatel může v UI zapnout zpět
   });
 
-  it('pravidelné platby dedup neřeší', () => {
+  it('pravidelnou platbu dedup neřeší přes otisk (nemá datum txn)', () => {
     const rec: LineItem = {
       id: 'rec-9', source: 'pravidelna', fingerprint: 'rec|9|2026-07-21', status: 'NEW',
-      mandatory: true, include: true, amount: 2800, message: 'plyn záloha',
+      mandatory: true, include: true, amount: 2800, message: 'plyn záloha Havlíčkova486-červenec 2026',
     };
+    // Shodná částka jiné transakce v historii nesmí pravidelnou platbu vyřadit.
     const { rows, report } = dedupe([rec], [hist('2026-07-01', 2800)]);
     expect(rows[0].status).toBe('NEW');
     expect(rows[0].include).toBe(true);
     expect(report.new).toBe(1);
+  });
+
+  it('pravidelnou platbu vyřadí, když je její TEXT už v historii (zaplaceno tento měsíc)', () => {
+    const rec: LineItem = {
+      id: 'rec-1', source: 'pravidelna', fingerprint: 'rec|1|2026-07-21', status: 'NEW',
+      mandatory: false, include: true, amount: 400,
+      message: 'Neo Modrý - telefon Maxík mobil (400 Kč) - červenec 2026',
+    };
+    const paid: LedgerEntry = {
+      fingerprint: '2026-07-21|400.00', date_txn: '2026-07-21', amount: 400,
+      merchant: 'Neo Modrý - telefon Maxík mobil (400 Kč) - červenec 2026', source: 'history',
+    };
+    const { rows, report } = dedupe([rec], [paid]);
+    expect(rows[0].status).toBe('ALREADY_CLAIMED');
+    expect(rows[0].include).toBe(false);
+    expect(rows[0].note).toContain('2026-07-21');
+    expect(report.alreadyClaimed).toBe(1);
+  });
+
+  it('loňský/minulý text (jiný měsíc) pravidelnou platbu nevyřadí', () => {
+    const rec: LineItem = {
+      id: 'rec-1', source: 'pravidelna', fingerprint: 'rec|1|2026-07-21', status: 'NEW',
+      mandatory: false, include: true, amount: 400,
+      message: 'Neo Modrý - telefon Maxík mobil (400 Kč) - červenec 2026',
+    };
+    const lastMonth: LedgerEntry = {
+      fingerprint: '2026-06-21|400.00', date_txn: '2026-06-21', amount: 400,
+      merchant: 'Neo Modrý - telefon Maxík mobil (400 Kč) - červen 2026', source: 'prev_xml',
+    };
+    const { rows } = dedupe([rec], [lastMonth]);
+    expect(rows[0].status).toBe('NEW');
+    expect(rows[0].include).toBe(true);
   });
 });

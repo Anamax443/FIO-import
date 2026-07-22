@@ -176,6 +176,14 @@ Množina otisků už uplatněných nákladů se sestaví z:
 - **`DUPLICATE_IN_BATCH`** — týž náklad dvakrát v aktuálním vstupu (Fio × Revolut, překryv) → nechá se jeden, druhý `include = false` + upozornění.
 - **`NEW`** — bez shody → `include = true`.
 
+**Pravidelné platby a dedup:** nemají datum transakce, takže je otisk `datum+částka`
+nechytí. Porovnávají se proto **podle textu zprávy** (ten obsahuje měsíc i částku, je
+jednoznačný). Když už tenhle měsíc zálohu zaplatíš, přijde na účet příjemce se stejným
+textem — pravidelná platba se pak označí `ALREADY_CLAIMED`, aby nešla podruhé.
+Text z minulého měsíce (`… červen 2026`) tu na aktuální (`… červenec 2026`) nesedne.
+*(Oprava 2026-07-22 — dřív se pravidelné platby z dedupu vyjímaly úplně, což mohlo
+navrhnout k platbě zálohu, která už tenhle měsíc odešla.)*
+
 ### Ochrana proti falešným shodám
 Existují **legitimní duplicity** (dvě stejné Alza týž den, dva Lidl týž den). Proto se shoda **nikdy nemaže automaticky** — jen předvyplní jako vyřazená a **uživatel ji může přebít** v editaci, když jde o samostatný nákup. Pomůcka: porovnávat i počet výskytů (2 v historii vs. 3 nově → flagnout jen ten navíc).
 
