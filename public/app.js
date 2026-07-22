@@ -741,7 +741,10 @@ async function syncAi() {
     const v = await res.json();
     if (!v.configured) { dot.className = 'dot'; dot.title = t.aiNone; return; }
     if (v.ok) { dot.className = 'dot online'; dot.title = t.aiOnline(v.model); return; }
-    dot.className = 'dot offline'; dot.title = t.aiBad(v.error ?? '');
+    dot.className = 'dot offline';
+    dot.title = v.reason === 'no_credit' ? t.aiNoCredit
+      : v.reason === 'auth' ? t.aiAuth
+        : t.aiBad(v.error ?? '');
   } catch {
     dot.className = 'dot offline'; dot.title = t.aiBad('');
   }

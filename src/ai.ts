@@ -103,13 +103,19 @@ export async function classify(rows: LineItem[], apiKey: string | undefined): Pr
 }
 
 /**
- * Ověří, že klíč funguje a model existuje — bez spotřeby tokenů
- * (`models.retrieve` je GET). Vyhodí při neplatném klíči i chybějícím modelu.
+ * Ověří, že AI reálně poběží — nestačí `models.retrieve` (to je zdarma a projde
+ * i bez kreditu). Pošle proto minimální dotaz (max_tokens 1), aby se ukázal i
+ * problém s kreditem/billingem. Cena je zanedbatelná (~1 token Haiku).
+ * Vyhodí při neplatném klíči, chybějícím modelu i nedostatku kreditu.
  */
 export async function checkAi(apiKey: string): Promise<string> {
   const client = new Anthropic({ apiKey, timeout: 8000, maxRetries: 0 });
-  const model = await client.models.retrieve(AI_MODEL);
-  return model.id;
+  const res = await client.messages.create({
+    model: AI_MODEL,
+    max_tokens: 1,
+    messages: [{ role: 'user', content: '.' }],
+  });
+  return res.model;
 }
 
 async function callClaude(targets: LineItem[], apiKey: string): Promise<Classified[]> {

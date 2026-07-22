@@ -72,7 +72,11 @@ export default {
         try {
           return json({ configured: true, ok: true, model: await checkAi(env.ANTHROPIC_API_KEY) });
         } catch (err) {
-          return json({ configured: true, ok: false, error: err instanceof Error ? err.message : 'chyba spojení' });
+          const msg = err instanceof Error ? err.message : 'chyba spojení';
+          const reason = /credit balance/i.test(msg) ? 'no_credit'
+            : /authentication|x-api-key|invalid api key|401/i.test(msg) ? 'auth'
+              : 'other';
+          return json({ configured: true, ok: false, reason, error: msg });
         }
       }
       if (url.pathname === '/api/template') {

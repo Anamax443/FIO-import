@@ -192,6 +192,8 @@ export const STRINGS = {
     online: 'Spojení s aplikací v pořádku — čas i verze jsou ze serveru',
     offline: 'Aplikace neodpovídá — údaje v hlavičce nemusí být aktuální',
     aiOnline: (m) => `AI připojena a funkční (model ${m})`,
+    aiNoCredit: 'AI klíč funguje, ale účet Anthropic nemá kredit — doplň ho v Plans & Billing. Kategorizace zatím poběží bez AI.',
+    aiAuth: 'AI klíč je neplatný nebo nemá oprávnění. Kategorizace poběží bez AI.',
     aiBad: (e) => `AI klíč nastaven, ale nefunguje${e ? ` — ${e}` : ''}. Kategorizace poběží bez AI.`,
     aiNone: 'AI klíč nenastaven — kategorizace poběží bez AI (nastav ANTHROPIC_API_KEY).',
 
@@ -411,6 +413,8 @@ export const STRINGS = {
     online: 'Connection to the app is healthy — time and version come from the server',
     offline: 'The app is not responding — header values may be stale',
     aiOnline: (m) => `AI connected and working (model ${m})`,
+    aiNoCredit: 'The AI key works, but the Anthropic account has no credit — top it up in Plans & Billing. Categorisation runs without AI for now.',
+    aiAuth: 'The AI key is invalid or lacks permission. Categorisation runs without AI.',
     aiBad: (e) => `AI key is set but not working${e ? ` — ${e}` : ''}. Categorisation runs without AI.`,
     aiNone: 'AI key not set — categorisation runs without AI (set ANTHROPIC_API_KEY).',
 
