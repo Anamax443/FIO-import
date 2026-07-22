@@ -19,8 +19,12 @@ import type { LineItem } from './types.js';
 
 /** Placený backend — ověřeno proti konzoli Anthropicu (viz docs/SAMPLE_DATA.md). */
 export const AI_MODEL = 'claude-haiku-4-5';
-/** Free backend — malý instruct model, JSON přes prompt (Workers AI, GPU edge). */
-export const WORKERS_AI_MODEL = '@cf/meta/llama-3.1-8b-instruct';
+/**
+ * Free backend — malý instruct model, JSON přes prompt (Workers AI, GPU edge).
+ * `-fp8` je jediná dostupná varianta 3.1-8B v katalogu (ověřeno `wrangler ai models`);
+ * 8B je levné na neurony, takže i plná dávka (60 řádků) zůstane ve free 10k/den.
+ */
+export const WORKERS_AI_MODEL = '@cf/meta/llama-3.1-8b-instruct-fp8';
 
 export type AiProvider = 'anthropic' | 'workers-ai';
 

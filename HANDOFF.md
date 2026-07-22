@@ -24,6 +24,12 @@ ve `wrangler.jsonc`; Workers AI běží jen `--remote`/v produkci (lokálně mod
 **Ověřeno:** `test/ai.test.ts` (11 testů — provider chain, enrich, fenced JSON,
 best-effort, fallback přes mock Anthropicu). **94 testů zelených**, `tsc --noEmit` čistý.
 
+**Pozn. k modelu:** plain `@cf/meta/llama-3.1-8b-instruct` v katalogu účtu **není** —
+použit `@cf/meta/llama-3.1-8b-instruct-fp8` (ověřeno `wrangler ai models`). Špatné ID
+by AI tiše shodilo (chyba 7502 → best-effort skip, žádný alarm), takže model ID vždy
+ověřit proti živému katalogu, ne z paměti. 8B (levné na neurony) drží i plnou dávku
+60 řádků ve free 10k neuronů/den; 70B by ji mohl prostřelit.
+
 ## 2026-07-22 — dedup pravidelných plateb: normalizace zlomkového podílu
 
 Textový dedup pravidelných plateb (SPEC §8, přidaný 2026-07-22) padal na **vedoucím

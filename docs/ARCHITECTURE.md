@@ -94,7 +94,7 @@ pipeline pokračuje beze změny.
 **Přepínatelný backend (`AI_PROVIDER`):**
 - `anthropic` — Claude Haiku 4.5 (`claude-haiku-4-5`) přes `@anthropic-ai/sdk`,
   structured outputs (striktní JSON schema). Placený; přesnější čeština.
-- `workers-ai` — Cloudflare Workers AI, Llama 3.1 8B (`@cf/meta/llama-3.1-8b-instruct`)
+- `workers-ai` — Cloudflare Workers AI, Llama 3.1 8B (`@cf/meta/llama-3.1-8b-instruct-fp8`)
   přes nativní `env.AI`. **Zdarma** (10k neuronů/den), data neopustí Cloudflare;
   JSON přes prompt s tolerantním parsováním (Workers AI nemá napříč verzemi zaručený
   `response_format`). Lokálně jen `wrangler dev --remote`.
