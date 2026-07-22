@@ -9,13 +9,13 @@
 1. Načte **Fio** (copy-paste z IB) a **Revolut** (CSV) výdaje kartou / výběry.
 2. Přidá **pravidelné a mandatorní platby** ze šablony; částky převezme z minulého přijatého XML (carry-over).
 3. **Dedup** proti historii už uplatněných nákladů (klíč = `datum_txn + částka`) — shoda se nikdy nemaže, jen se předvyplní jako vyřazená.
-4. **Review krok** — tabulka k editaci, filtry, přepínače `include`, živý součet.
+4. **Review krok** — tabulka k editaci, filtry, přepínače `include`, živý součet. Malé výdaje pod nastavenou **minimální částkou** (výchozí 200 Kč, v Nastavení) se předvyplní jako vypnuté.
 5. Vygeneruje `.xml`, které Fio přijme na první pokus (CRLF, bez komentářů, pevné pořadí elementů).
 
 Detailní zadání: [docs/SPEC.md](docs/SPEC.md). Uživatelský návod: [docs/navod.html](docs/navod.html).
 
 ## Stav
-Jádro **hotové a ověřené**: 98 testů (Vitest), typecheck čistý, celá pipeline proběhla živě
+Jádro **hotové a ověřené**: 105 testů (Vitest), typecheck čistý, celá pipeline proběhla živě
 od výpisu po platný soubor; appka je **nasazená na Cloudflare** (bass443). Zbývá ostrý běh
 na reálné měsíční dávce — viz [HANDOFF.md](HANDOFF.md).
 
@@ -33,7 +33,7 @@ na reálné měsíční dávce — viz [HANDOFF.md](HANDOFF.md).
 ## Spuštění / build
 ```
 npm install
-npm test            # 98 testů
+npm test            # 105 testů
 npm run typecheck
 npx wrangler dev --local --port 8788   # UI na http://127.0.0.1:8788
 ```

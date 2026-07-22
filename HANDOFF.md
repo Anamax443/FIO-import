@@ -2,6 +2,26 @@
 
 Append-only. Nejnovější záznam nahoru. Slouží k pokračování z jiného počítače / po pauze.
 
+## 2026-07-22 — Nastavení (minimální částka) + záložka Dokumentace
+
+Nové záložky **Nastavení** a **Dokumentace** (styl job-watch).
+
+- **Nastavení → Minimální částka výdaje** (výchozí 200 Kč, variabilní, localStorage).
+  Výdaje z výpisů (Fio/Revolut) pod prahem se předvyplní jako **vypnuté**
+  (`include=false` + poznámka), řádek se nemaže. Pravidelných/povinných plateb se
+  netýká. Server-side: `src/threshold.ts` (`applyMinAmount`, `DEFAULT_MIN_AMOUNT=200`),
+  aplikuje se v `/api/process` po dedupu; request nese `minAmount`, response vrací
+  `minAmount` + `belowMin` (kolik vypnuto).
+- **Dokumentace** — in-app přehled dokumentace dle standardu (vrstvy v repu) +
+  klíčová pravidla (formát XML, dedup/stavy, pravidelné, AI, minčástka). Renderuje
+  se z `t.docs` (i18n CS+EN), stejný pattern jako Nápověda.
+
+Drobně srovnán drift: ARCHITECTURE/SPEC teď uvádějí i `ALREADY_GENERATED` v seznamu stavů.
+
+**Ověřeno:** `test/threshold.test.ts` (7 testů) + živý e2e (`/api/process`: práh 200 →
+položka 150 vypnutá s příznakem, 500 zapnutá, `belowMin=1`; práh 0 → bez filtru).
+**105 testů**, `tsc` čistý, `node --check` na `app.js`/`i18n.js` OK.
+
 ## 2026-07-22 — sladění UI textů s přepínatelným AI backendem
 
 Dokumentace (README, ARCHITECTURE, BUILD, SAMPLE_DATA, prezentace, status) přepínatelný

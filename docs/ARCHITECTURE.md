@@ -45,7 +45,8 @@ Minulé XML ────────┘        └─ D1: šablona pravidelných
 | `merchantNote.ts` | odhad kategorie/poznámky z názvu obchodníka (bankomat, PHM, parkování…) |
 | `parse/prevXml.ts` | z minulého XML: ledger + transakce pro carry-over |
 | `recurring.ts` | sestavení pravidelných ze šablony + carry-over částek |
-| `dedup.ts` | statusy NEW / ALREADY_CLAIMED / DUPLICATE_IN_BATCH (shody se nemažou, jen `include=false`) |
+| `dedup.ts` | statusy NEW / ALREADY_CLAIMED / ALREADY_GENERATED / DUPLICATE_IN_BATCH; autorita Fio výpisu (shody se nemažou, jen `include=false`) |
+| `threshold.ts` | minimální částka výdaje — malé výdaje z výpisů předvyplní jako vypnuté (`applyMinAmount`) |
 | `xml.ts` | **buildXml** + `validate` — CRLF, žádné komentáře, pevné pořadí elementů, desetinná tečka |
 | `ai.ts` | AI kategorizace: category, note, claimable, čištění obchodníka; přepínatelný backend (`providerChain` + fallback) |
 | `index.ts` | Worker: routy `/api/*` + statické UI |
@@ -54,7 +55,7 @@ Minulé XML ────────┘        └─ D1: šablona pravidelných
 
 | Metoda | Cesta | Vstup | Výstup |
 |--------|-------|-------|--------|
-| POST | `/api/process` | `{date, fio?, revolut?, historyCsv?, prevXml?, useAi?}` | `{date, rows[], report, historySize, aiUsed, aiProvider}` |
+| POST | `/api/process` | `{date, fio?, revolut?, historyCsv?, prevXml?, useAi?, useRecurring?, minAmount?}` | `{date, rows[], report, historySize, aiUsed, aiProvider, minAmount, belowMin}` |
 | POST | `/api/generate` | `{date, rows[]}` — generuje se jen z `include=true` | `.xml` + hlavičky `x-fio-count`, `x-fio-total` |
 | POST | `/api/ledger/import` | `{csv}` — pohyby účtu příjemce | `{imported}` |
 | GET | `/api/template` | — | `{template[]}` (šablona pravidelných plateb) |

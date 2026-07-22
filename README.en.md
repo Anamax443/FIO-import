@@ -9,13 +9,13 @@
 1. Reads **Fio** (paste from internet banking) and **Revolut** (CSV) card payments / withdrawals.
 2. Adds **recurring and mandatory payments** from a template; amounts are carried over from the last accepted XML.
 3. **Deduplicates** against the history of already claimed costs (key = `txn_date + amount`) — a match is never deleted, only pre-set as excluded.
-4. **Review step** — editable table, filters, `include` toggles, live total.
+4. **Review step** — editable table, filters, `include` toggles, live total. Statement expenses below the configurable **minimum amount** (default 200 CZK, in Settings) are pre-set as off.
 5. Generates the `.xml` that Fio accepts on the first attempt (CRLF, no comments, fixed element order).
 
 Full specification (Czech): [docs/SPEC.md](docs/SPEC.md). User guide: [docs/navod.en.html](docs/navod.en.html).
 
 ## Status
-The core is **done and verified**: 98 tests (Vitest), clean typecheck, and the whole pipeline
+The core is **done and verified**: 105 tests (Vitest), clean typecheck, and the whole pipeline
 ran live from statement to a valid file; the app is **deployed on Cloudflare** (bass443).
 A first real monthly batch remains — see [HANDOFF.md](HANDOFF.md) (Czech).
 
@@ -33,7 +33,7 @@ A first real monthly batch remains — see [HANDOFF.md](HANDOFF.md) (Czech).
 ## Run / build
 ```
 npm install
-npm test            # 98 tests
+npm test            # 105 tests
 npm run typecheck
 npx wrangler dev --local --port 8788   # UI at http://127.0.0.1:8788
 ```

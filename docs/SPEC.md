@@ -207,11 +207,12 @@ Existují **legitimní duplicity** (dvě stejné Alza týž den, dva Lidl týž 
 Tabulka všech řádků k finální kontrole:
 
 - **Zap/vyp řádku** (`include`) — měkké vyřazení, řádek zůstane vidět (přeškrtnutý). Hodí se na haléřové zbytky (Booking 16,74) i na přebití dedupu.
-- **Status z dedupu** — sloupec `NEW / ALREADY_CLAIMED / DUPLICATE_IN_BATCH`, barevně, s možností filtrovat.
+- **Status z dedupu** — sloupec `NEW / ALREADY_CLAIMED / ALREADY_GENERATED / DUPLICATE_IN_BATCH`, barevně, s možností filtrovat.
 - **Editace na místě** — částka a text (změněné zálohy, opravy).
 - **Filtry** — `source` (fio/revolut/pravidelná), `kategorie`, `mandatory`, `status`.
 - **Ochrana mandatorních** — zvýrazněné; vyřazení jen s potvrzením.
 - **Souhrn v patičce** — živý součet částek + počet aktivních příkazů; zvlášť „vyřazeno jako už uplatněné".
+- **Minimální částka** (Nastavení) — výdaje z výpisů pod prahem (výchozí 200 Kč, variabilní) se předvyplní jako vypnuté; malé položky, které nemá smysl rozúčtovávat. Nemažou se — uživatel zapne. Pravidelných/povinných plateb se netýká.
 
 Generuje se **výhradně z řádků `include = true`**.
 
@@ -226,6 +227,7 @@ Generuje se **výhradně z řádků `include = true`**.
 | `vypisy` | Vstupy — Fio a/nebo Revolut. | — |
 | `predchozi_xml` | Minulé přijaté XML (carry-over částek) **+ historie pro dedup**. | volitelné, doporučené |
 | `ledger` | Průběžný záznam už uplatněných nákladů. | volitelné |
+| `minAmount` | Minimální částka výdaje (Nastavení). Výdaje z výpisů pod ní se předvyplní jako vypnuté; pravidelných/povinných se netýká. | 200 Kč |
 
 `date` je jedno pro celou dávku; datum transakce jde jen do textu zprávy.
 
