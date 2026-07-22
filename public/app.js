@@ -170,7 +170,7 @@ function rowHtml(r) {
     <tr class="${cls}" data-id="${escapeHtml(r.id)}">
       <td class="keep"><input type="checkbox" class="inc" ${r.include ? 'checked' : ''} title="${escapeHtml(t.includeTip)}"></td>
       <td class="keep"><span class="badge src">${escapeHtml(source)}</span></td>
-      <td class="keep"><span class="badge ${r.status}">${r.status}</span></td>
+      <td class="keep"><span class="badge ${r.status}" title="${escapeHtml(r.status)}">${escapeHtml(t.status[r.status] ?? r.status)}</span></td>
       <td>${escapeHtml(r.date_txn ?? '')}</td>
       <td>${escapeHtml(r.kategorie ?? '')}</td>
       <td class="num"><input type="number" step="0.01" class="amt" value="${r.amount}" title="${escapeHtml(t.amountTip)}"></td>
