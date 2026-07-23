@@ -62,8 +62,12 @@
 </table>
 <p>Recurring payments are not pasted anywhere — the app knows them from its template.</p>
 
+<div class="box">
+  <strong>Quick period.</strong> Statement expenses can be limited to specific months with the <strong>Quick period</strong> control next to the date: the month number (0 = this, −1 = last, −2 = two ago — counted from the due date) <em>×</em> how many months back (1 = just it, 2 = plus previous). A preview shows the resulting period; <strong>Set</strong> fills it into “Transactions from–to”. Recurring payments are not affected.
+</div>
+
 <h3>Step 3 — Process</h3>
-<p>Click <strong>Process</strong>. A table of all rows appears, each with a status:</p>
+<p>Click <strong>Process</strong>. With large statements it takes a moment — a <strong>blue bar</strong> runs across the top, the button switches to <em>Processing…</em> with a spinner, and the status line counts the seconds. When it finishes, a table of all rows appears, each with a status:</p>
 <table>
   <tr><th>Status</th><th>Meaning</th><th>Default</th></tr>
   <tr><td><span class="badge NEW">NEW</span></td><td>A new cost, not found anywhere else.</td><td>goes into the XML</td></tr>

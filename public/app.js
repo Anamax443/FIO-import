@@ -2,6 +2,7 @@ import { detectKind } from './detect.js';
 import { STRINGS } from './i18n.js';
 import { buildCsv, buildReportHtml, summarize } from './report.js';
 import { buildDocHtml } from './doc.js';
+import { monthRange } from './period.js';
 
 const $ = (id) => document.getElementById(id);
 const TEXTAREAS = ['revolut', 'historyCsv', 'prevXml'];
@@ -34,6 +35,7 @@ function applyLang() {
   tickClock();
   renderHelp();
   renderDocs();
+  updateRelPreview();
   if (template.length) renderTemplate();
   render();
   renderHistory();
@@ -84,6 +86,37 @@ function isoDate(d) {
 
 function fmt(n) {
   return new Intl.NumberFormat(lang === 'cs' ? 'cs-CZ' : 'en-US', { minimumFractionDigits: 2 }).format(n);
+}
+
+/* ---------- průběh dlouhé operace (viditelná zpětná vazba) ---------- */
+
+/** Přepne tlačítko do „busy" stavu (spinner + jiný popisek) a horní lištu. */
+function setBtnBusy(btn, on, busyLabel) {
+  $('topbar').classList.toggle('active', on);
+  btn.disabled = on;
+  btn.classList.toggle('busy', on);
+  // Popisek cílíme přes [data-i18n], ať ho nezaměníme s vloženým spinnerem.
+  const label = btn.querySelector('span[data-i18n]');
+  if (on) {
+    if (label) label.textContent = busyLabel;
+    if (!btn.querySelector('.spin')) btn.insertAdjacentHTML('afterbegin', '<span class="spin"></span>');
+  } else {
+    btn.querySelector('.spin')?.remove();
+    if (label) label.textContent = t[label.dataset.i18n] ?? label.textContent;
+  }
+}
+
+/** Počítadlo vteřin ve stavovém řádku — u velkých výpisů ať je vidět, že to jede. */
+let elapsedTimer = null;
+function startElapsed(label) {
+  const t0 = Date.now();
+  const tick = () => showMessage(`${label} (${Math.round((Date.now() - t0) / 1000)} s)`, 'ok');
+  tick();
+  stopElapsed();
+  elapsedTimer = setInterval(tick, 1000);
+}
+function stopElapsed() {
+  if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
 }
 
 /* ---------- render tabulky ---------- */
@@ -430,8 +463,8 @@ function setupBulk() {
 
 async function process() {
   const btn = $('process');
-  btn.disabled = true;
-  showMessage(t.working, 'ok');
+  setBtnBusy(btn, true, t.processing);
+  startElapsed(t.working);
 
   try {
     const res = await api('/api/process', {
@@ -450,6 +483,7 @@ async function process() {
         aiProvider: getAiProvider() || undefined,
       }),
     });
+    stopElapsed();   // odpověď dorazila — přestaň přepisovat stavový řádek
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || res.statusText);
 
@@ -470,13 +504,14 @@ async function process() {
   } catch (err) {
     showMessage(String(err.message ?? err), 'err');
   } finally {
-    btn.disabled = false;
+    stopElapsed();
+    setBtnBusy(btn, false);
   }
 }
 
 async function generate() {
   const btn = $('generate');
-  btn.disabled = true;
+  setBtnBusy(btn, true, t.generating);
   try {
     const res = await api('/api/generate', {
       method: 'POST',
@@ -504,7 +539,8 @@ async function generate() {
   } catch (err) {
     showMessage(String(err.message ?? err), 'err');
   } finally {
-    updateSummary();
+    setBtnBusy(btn, false);
+    updateSummary();   // srovná disabled podle počtu aktivních řádků
   }
 }
 
@@ -787,6 +823,46 @@ function setupSettings() {
   });
 }
 
+/* ---------- rychlé relativní období (Transakce od–do) ---------- */
+
+/** Základ pro výpočet měsíce = datum splatnosti, jinak dnešek. */
+function relBase() {
+  return $('date').value ? new Date(`${$('date').value}T00:00:00`) : new Date();
+}
+
+function relPeriod() {
+  return monthRange(relBase(), $('relMonth').value, $('relCount').value);
+}
+
+function applyRelPeriod() {
+  const { from, to } = relPeriod();
+  $('dateFrom').value = from;
+  $('dateTo').value = to;
+  updateRelPreview();
+}
+
+/** Náhled výsledného období pod voličem, ať je jasné, co se nastaví. */
+function updateRelPreview() {
+  const { from, to } = relPeriod();
+  const label = (isoDay) => {
+    const [y, m] = isoDay.split('-');
+    const d = new Date(Number(y), Number(m) - 1, 1);
+    return `${new Intl.DateTimeFormat(lang === 'cs' ? 'cs-CZ' : 'en-US', { month: 'long' }).format(d)} ${y}`;
+  };
+  const a = label(from);
+  const b = label(to);
+  $('relPreview').textContent = `→ ${a === b ? a : `${a} – ${b}`}`;
+}
+
+function setupRelPeriod() {
+  $('relApply').addEventListener('click', applyRelPeriod);
+  for (const id of ['relMonth', 'relCount']) {
+    $(id).addEventListener('input', updateRelPreview);
+    $(id).addEventListener('change', applyRelPeriod);
+  }
+  updateRelPreview();
+}
+
 /* ---------- hlavička: čas a verze ze serveru ---------- */
 
 /** Rozdíl mezi časem serveru a hodinami prohlížeče (ms). */
@@ -971,14 +1047,8 @@ function init() {
     render();
   });
 
-  // Nejčastější případ: rozúčtovává se minulý měsíc celý.
-  $('lastMonth').addEventListener('click', () => {
-    const due = $('date').value ? new Date(`${$('date').value}T00:00:00`) : new Date();
-    const from = new Date(due.getFullYear(), due.getMonth() - 1, 1);
-    const to = new Date(due.getFullYear(), due.getMonth(), 0);
-    $('dateFrom').value = isoDate(from);
-    $('dateTo').value = isoDate(to);
-  });
+  // Rychlé relativní období (výchozí −1 × 1 = minulý měsíc, jako dřív).
+  setupRelPeriod();
 
   for (const id of FILTER_IDS) {
     $(id).addEventListener('input', render);
@@ -1001,7 +1071,7 @@ function init() {
   setupDocsExport();
   setupHistory();
   setupSettings();
-  $('date').addEventListener('change', updateTplSummary);
+  $('date').addEventListener('change', () => { updateTplSummary(); updateRelPreview(); });
 
   startHeaderClock();
   applyLang();

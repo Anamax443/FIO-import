@@ -2,6 +2,28 @@
 
 Append-only. Nejnovější záznam nahoru. Slouží k pokračování z jiného počítače / po pauze.
 
+## 2026-07-23 — UX: viditelný průběh zpracování + relativní volič období
+
+Z ostrého běhu na reálné dávce (velké výpisy: Fio 1377, Revolut 1541, XML 1391 řádků):
+Zpracovat funguje, ale uživatel **neviděl, že to jede** — jediná zpětná vazba byla nenápadné
+„Pracuji…". A přání: nahradit tlačítko „Minulý měsíc" **relativním voličem měsíce**.
+
+- **Viditelný průběh.** Horní neurčitá lišta (`#topbar`, fixed, animovaná), tlačítko přejde
+  do „busy" (spinner + popisek „Zpracovávám…" / „Generuji…"), stavový řádek počítá vteřiny.
+  `setBtnBusy()` + `startElapsed/stopElapsed` v `app.js`; zapojeno v `process()` i `generate()`.
+  Popisek tlačítka se cílí přes `span[data-i18n]` (ať se nezamění s vloženým spinnerem) a
+  obnovuje z i18n.
+- **Rychlé období** místo „Minulý měsíc": dvě čísla — **offset** (0 = tento, −1 = minulý…) ×
+  **počet** měsíců zpět — + tlačítko Nastavit a živý náhled výsledného období. Jádro je čistá
+  funkce `public/period.js` → `monthRange(base, offset, count)` = {from, to} (RRRR-MM-DD),
+  `new Date(rok, index)` řeší přetečení přes rok. Výchozí −1 × 1 = přesně původní „Minulý měsíc".
+
+`public/period.js` + `test/period.test.ts` (8 testů: aktuální/minulý, víceměsíční rozsah,
+přetečení roku obou směrů, přestupný únor, ořez vstupů). Ostatní: `index.html` (topbar +
+volič), `styles.css` (lišta + spinner), `i18n.js` (relPeriod/relApply/processing/generating,
+CS+EN), navod CS+EN. **127 testů** zelených (bylo 119), `tsc` čistý, `node --check` OK.
+DOM chování (spinner, náhled) ověřit ještě naživo po deploy. Nenasazeno.
+
 ## 2026-07-23 — PROTOTYP: kontrola refundací (verify-core, zatím nezadrátováno)
 
 Nová poradní „kontrola", nápad uživatele: hlídat **refundace / dobropisy**. Dnes appka

@@ -62,8 +62,12 @@
 </table>
 <p>Pravidelné platby se nikam nevkládají — appka je zná ze šablony.</p>
 
+<div class="box">
+  <strong>Rychlé období.</strong> Výdaje z výpisů se dají omezit na konkrétní měsíce polem <strong>Rychlé období</strong> u data: číslo měsíce (0 = tento, −1 = minulý, −2 = předminulý — počítá se od data splatnosti) <em>×</em> počet měsíců zpět (1 = jen ten, 2 = i předchozí). Náhled hned ukáže výsledné období, <strong>Nastavit</strong> ho vyplní do „Transakce od–do". Pravidelných plateb se omezení netýká.
+</div>
+
 <h3>Krok 3 — Zpracovat</h3>
-<p>Klikni na <strong>Zpracovat</strong>. Objeví se tabulka všech řádků se stavem:</p>
+<p>Klikni na <strong>Zpracovat</strong>. U velkých výpisů to chvíli trvá — nahoře běží <strong>modrý proužek</strong>, tlačítko se přepne na <em>Zpracovávám…</em> se spinnerem a stavový řádek počítá vteřiny. Až doběhne, objeví se tabulka všech řádků se stavem:</p>
 <table>
   <tr><th>Stav</th><th>Co znamená</th><th>Výchozí</th></tr>
   <tr><td><span class="badge NEW">NEW</span></td><td>Nový náklad, nikde jinde se nenašel.</td><td>jde do XML</td></tr>

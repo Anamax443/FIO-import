@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
+  <div id="topbar"></div>
   <header>
     <h1 data-i18n="title">FIO-import</h1>
     <span class="sub" data-i18n="subtitle"></span>
@@ -60,7 +61,14 @@
             <input type="date" id="dateTo" data-i18n-title="rangeTip">
           </div>
           <div style="align-self:end">
-            <button id="lastMonth" data-i18n-title="lastMonthTip"><span data-i18n="lastMonth"></span></button>
+            <label data-i18n="relPeriod"></label>
+            <div class="row" style="gap:6px; flex-wrap:nowrap; align-items:center">
+              <input type="number" id="relMonth" value="-1" step="1" style="width:58px" data-i18n-title="relMonthTip">
+              <span class="hint">×</span>
+              <input type="number" id="relCount" min="1" value="1" step="1" style="width:52px" data-i18n-title="relCountTip">
+              <button id="relApply" data-i18n-title="relApplyTip"><span data-i18n="relApply"></span></button>
+              <span class="hint" id="relPreview"></span>
+            </div>
           </div>
           <div style="align-self:end">
             <label><input type="checkbox" id="useRecurring" checked data-i18n-title="useRecurringTip">
