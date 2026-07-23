@@ -60,7 +60,7 @@ Minulé XML ────────┘        └─ D1: šablona pravidelných
 | POST | `/api/ledger/import` | `{csv}` — pohyby účtu příjemce | `{imported}` |
 | GET | `/api/template` | — | `{template[]}` (šablona pravidelných plateb) |
 | GET | `/api/ai-check` | `?provider=` (volitelně; přebíjí env) | `{configured, ok?, provider, model?, reason?, fallback?}` — provider-aware indikátor AI |
-| GET | `/api/version` | — | `{commit}` — živý commit hash v patičce UI |
+| GET | `/api/version` | — | `{commit, time, aiConfigured}` — živý commit + čas serveru; `Cache-Control: no-store` (veřejný endpoint, jinak edge kešuje starý commit po deploy) |
 
 `aiProvider` v `/api/process` a `?provider=` v `/api/ai-check` nese volbu AI backendu ze záložky
 **Nastavení** (klient, localStorage). Prázdné = env default (`AI_PROVIDER`). Dostupnost hlídá

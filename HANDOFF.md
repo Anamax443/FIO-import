@@ -32,7 +32,14 @@ navod CS+EN, project-status, prezentace.
 OK, a vizuální kontrola reálně vygenerovaného HTML dokumentace (6 sekcí, metadata sedí).
 Frontend nemá build step — `public/` servíruje Worker, takže se změny projeví až po deploy.
 
-**Nenasazeno** (čeká na explicitní „nasaď"). Živě pořád běží commit `2549dbf`.
+**Nasazeno** (`wrangler deploy` na bass443, `COMMIT_SHA=705a58b`): živě běží commit
+`705a58b`, Version `c861df57-4aac-44af-a8fb-7dcd2d47fd53`, AI_PROVIDER=workers-ai. Ověřeno
+`/api/version` (přes cache-buster — viz níže).
+
+**Drobná oprava po deploy:** `/api/version` je veřejný (bez auth), takže ho Cloudflare edge
+kešoval → holý dotaz po deploy chvíli hlásil starý commit/čas (razítko v UI zaostávalo).
+Přidán `Cache-Control: no-store` (`json()` teď bere volitelné hlavičky). `tsc`/108 testů
+beze změny. Nasadit samostatně nebo přibalit k příštímu deploy.
 
 ## 2026-07-22 — Nastavení (minimální částka) + záložka Dokumentace
 

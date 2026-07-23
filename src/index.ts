@@ -74,7 +74,13 @@ export default {
 
       if (url.pathname === '/api/version') {
         // Čas ze serveru, ať hlavička ukazuje čas běžící aplikace, ne hodiny prohlížeče.
-        return json({ commit: env.COMMIT_SHA ?? 'dev', time: new Date().toISOString(), aiConfigured: Boolean(env.ANTHROPIC_API_KEY) });
+        // no-store: endpoint je veřejný (bez auth), jinak ho edge nakešuje a po deploy
+        // chvíli hlásí starý commit i čas.
+        return json(
+          { commit: env.COMMIT_SHA ?? 'dev', time: new Date().toISOString(), aiConfigured: Boolean(env.ANTHROPIC_API_KEY) },
+          200,
+          { 'cache-control': 'no-store' },
+        );
       }
       if (url.pathname === '/api/ai-check' && request.method === 'GET') {
         // Volba z Nastavení (?provider=) přebíjí env default, ať indikátor sedí s tím, co poběží.
@@ -360,9 +366,9 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function json(data: unknown, status = 200): Response {
+function json(data: unknown, status = 200, headers: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
+    headers: { 'content-type': 'application/json; charset=utf-8', ...headers },
   });
 }
