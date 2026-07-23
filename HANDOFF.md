@@ -2,6 +2,32 @@
 
 Append-only. Nejnovější záznam nahoru. Slouží k pokračování z jiného počítače / po pauze.
 
+## 2026-07-23 — PROTOTYP: kontrola refundací (verify-core, zatím nezadrátováno)
+
+Nová poradní „kontrola", nápad uživatele: hlídat **refundace / dobropisy**. Dnes appka
+příchozí (kladné) částky prostě zahodí — přitom refundace znamená, že obchodník vrátil
+náklad, který jsi **možná už rozúčtoval** → tichý přeplatek, stejně drahá chyba jako duplicita.
+
+Dle pravidla **verify-core** je hotové jen **jádro** jako čistá, testovaná funkce, NE UI:
+- `src/refund.ts` — `findRefunds(candidates, history, opts)` → `RefundFlag[]`. Deterministické
+  párování příchozí částky na dřívější výdaj z ledgeru: obchodník po **tokenech** (přesná
+  shoda tokenu ≥3 znaky, ne substring — „mol" nechytne „smolařova"), částka (`full` ± 0,5 Kč
+  vs `partial` = méně než výdaj), datum (refundace po nákupu, v okně 120 dní). Nic nemění,
+  vrací jen varování k ruční kontrole. Fuzzy případy = místo pro pozdější AI.
+- `test/refund.test.ts` — 11 testů (plná/částečná, vyšší než výdaj, před nákupem, mimo okno,
+  jiný obchodník, záporná = není kandidát, bez data, substring-token, řazení). **119 testů** celkem, `tsc` čistý.
+
+**Zbývá k integraci (čeká na rozhodnutí o UX):**
+1. **Zdroj kandidátů** — parsery dnes příchozí (kladné) částky zahazují; je potřeba je
+   vytáhnout jako `RefundCandidate[]` (Fio karta/pohyby + Revolut, kladný objem).
+2. **API** — `/api/process` doplní `warnings[]` (refundace + později anomálie částky, chybějící
+   pravidelná). Návrh: samostatné pole, dedup/generování se nemění.
+3. **UI** — kde varování ukázat: inline v tabulce Kontroly (badge u řádku) vs. samostatná
+   sekce „Kontrola" nad tabulkou. Doporučení: inline + malý souhrn.
+
+Prototyp je commitnutý, ale **není nikde importovaný** (mrtvý kód, záměrně — verify-core).
+Nenasazeno.
+
 ## 2026-07-23 — Dokumentace tisknutelná/exportovatelná + výběr AI modelu v Nastavení
 
 Dvě UI vylepšení bez zásahu do logiky pipeline:
