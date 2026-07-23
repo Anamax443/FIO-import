@@ -30,6 +30,8 @@ npm install
 - **AI backend** řídí `AI_PROVIDER` ve `wrangler.jsonc` → `vars`: `workers-ai` (zdarma,
   výchozí), `anthropic` (placený, s automatickým free fallbackem) nebo `off`. Workers AI
   používá binding `ai` (už ve `wrangler.jsonc`) a běží jen `--remote`/v produkci.
+  `AI_PROVIDER` je **serverový default**; uživatel ho může přebít per požadavek v záložce
+  **Nastavení** (klient posílá `aiProvider` / `?provider=`), bez re-deploye.
 - konstanty příkazu (čísla účtů, `bankCode`, `paymentType`) jsou ve `wrangler.jsonc` → `vars`
 
 **D1 databáze** — volitelná, ale bez ní si appka nepamatuje historii mezi běhy:
@@ -56,7 +58,7 @@ curl -X POST http://127.0.0.1:8788/api/ledger/import \
 
 ```
 npm run typecheck   # tsc --noEmit
-npm test            # vitest — 105 testů, akceptační čísla z docs/SAMPLE_DATA.md
+npm test            # vitest — 108 testů, akceptační čísla z docs/SAMPLE_DATA.md
 ```
 
 Testy kryjí rizikové jádro: normalizaci částek, otisk pro dedup, ASCII-fold, parsery

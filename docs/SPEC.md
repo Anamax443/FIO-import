@@ -213,6 +213,7 @@ Tabulka všech řádků k finální kontrole:
 - **Ochrana mandatorních** — zvýrazněné; vyřazení jen s potvrzením.
 - **Souhrn v patičce** — živý součet částek + počet aktivních příkazů; zvlášť „vyřazeno jako už uplatněné".
 - **Minimální částka** (Nastavení) — výdaje z výpisů pod prahem (výchozí 200 Kč, variabilní) se předvyplní jako vypnuté; malé položky, které nemá smysl rozúčtovávat. Nemažou se — uživatel zapne. Pravidelných/povinných plateb se netýká.
+- **AI backend** (Nastavení) — volba, který AI backend použít pro kategorizaci Revolut řádků: *Podle serveru* (výchozí, dle nasazení) / *Zdarma — Workers AI* / *Placené — Claude* / *Vypnuto*. Volba je per požadavek (localStorage), přebíjí serverový default; nedostupný backend se ignoruje (free zůstává fallback). Projeví se i v indikátoru AI v hlavičce.
 
 Generuje se **výhradně z řádků `include = true`**.
 
@@ -228,6 +229,7 @@ Generuje se **výhradně z řádků `include = true`**.
 | `predchozi_xml` | Minulé přijaté XML (carry-over částek) **+ historie pro dedup**. | volitelné, doporučené |
 | `ledger` | Průběžný záznam už uplatněných nákladů. | volitelné |
 | `minAmount` | Minimální částka výdaje (Nastavení). Výdaje z výpisů pod ní se předvyplní jako vypnuté; pravidelných/povinných se netýká. | 200 Kč |
+| `aiProvider` | Výběr AI backendu (Nastavení): `workers-ai` / `anthropic` / `off`; prázdné = serverový default (`AI_PROVIDER`). | serverový default |
 
 `date` je jedno pro celou dávku; datum transakce jde jen do textu zprávy.
 

@@ -1,6 +1,7 @@
 import { detectKind } from './detect.js';
 import { STRINGS } from './i18n.js';
 import { buildCsv, buildReportHtml, summarize } from './report.js';
+import { buildDocHtml } from './doc.js';
 
 const $ = (id) => document.getElementById(id);
 const TEXTAREAS = ['revolut', 'historyCsv', 'prevXml'];
@@ -446,6 +447,7 @@ async function process() {
         useAi: $('useAi').checked,
         useRecurring: $('useRecurring').checked,
         minAmount: getMinAmount(),
+        aiProvider: getAiProvider() || undefined,
       }),
     });
     const data = await res.json();
@@ -608,6 +610,47 @@ function setupExport() {
   });
 }
 
+/* ---------- export dokumentace (tisk / HTML / PDF) ---------- */
+
+function docLabels() {
+  return {
+    docTitle: t.docReportTitle,
+    subtitle: t.subtitle,
+    generatedAt: t.reportGenerated,
+    version: t.commit,
+    footer: t.docFooter,
+  };
+}
+
+function docMeta() {
+  return {
+    lang,
+    now: new Intl.DateTimeFormat(lang === 'cs' ? 'cs-CZ' : 'en-GB', { dateStyle: 'short', timeStyle: 'short' })
+      .format(new Date(Date.now() + clockOffset)),
+    commit: $('commit').textContent,
+    url: location.origin,
+  };
+}
+
+/** Otevře dokumentaci v novém okně a spustí tisk — slouží pro Tisk i pro „Uložit jako PDF". */
+function printDoc() {
+  const html = buildDocHtml(t.docs, docMeta(), docLabels());
+  const w = window.open('', '_blank');
+  if (!w) { showMessage(t.popupBlocked, 'err'); return; }
+  w.document.write(html);
+  w.document.close();
+  w.addEventListener('load', () => { w.focus(); w.print(); });
+}
+
+function setupDocsExport() {
+  $('docHtml').addEventListener('click', () => {
+    const name = `fio-import-${lang === 'cs' ? 'dokumentace' : 'documentation'}.html`;
+    download(name, 'text/html;charset=utf-8', buildDocHtml(t.docs, docMeta(), docLabels()));
+  });
+  $('docPrint').addEventListener('click', printDoc);
+  $('docPdf').addEventListener('click', printDoc);
+}
+
 /* ---------- historie (dohledání uplatněného) ---------- */
 
 async function loadLedger() {
@@ -724,11 +767,24 @@ function getMinAmount() {
   return Number.isFinite(n) && n >= 0 ? n : 200;
 }
 
+/** Zvolený AI backend z Nastavení; prázdné = „podle serveru" (env AI_PROVIDER). */
+function getAiProvider() {
+  return $('aiProvider')?.value ?? '';
+}
+
 function setupSettings() {
   const input = $('minAmount');
   const saved = localStorage.getItem('fio-minAmount');
   if (saved !== null) input.value = saved;
   input.addEventListener('input', () => localStorage.setItem('fio-minAmount', input.value));
+
+  const ai = $('aiProvider');
+  const savedAi = localStorage.getItem('fio-aiProvider');
+  if (savedAi !== null) ai.value = savedAi;
+  ai.addEventListener('change', () => {
+    localStorage.setItem('fio-aiProvider', ai.value);
+    syncAi();   // indikátor AI v hlavičce hned odráží zvolený backend
+  });
 }
 
 /* ---------- hlavička: čas a verze ze serveru ---------- */
@@ -764,7 +820,8 @@ function tickClock() {
 async function syncAi() {
   const dot = $('aiDot');
   try {
-    const res = await api('/api/ai-check');
+    const provider = getAiProvider();
+    const res = await api(`/api/ai-check${provider ? `?provider=${encodeURIComponent(provider)}` : ''}`);
     const v = await res.json();
     if (!v.configured) { dot.className = 'dot'; dot.title = t.aiNone; return; }
     if (v.ok) { dot.className = 'dot online'; dot.title = t.aiOnline(v.model); return; }
@@ -941,6 +998,7 @@ function init() {
   setupBulk();
   setupTemplate();
   setupExport();
+  setupDocsExport();
   setupHistory();
   setupSettings();
   $('date').addEventListener('change', updateTplSummary);

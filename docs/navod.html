@@ -102,12 +102,18 @@
   <strong>Historie se učí sama.</strong> Po každé vygenerované dávce si appka zapíše odeslané řádky, takže příště je pozná jako už uplatněné. Poprvé je proto dobré nahrát CSV pohybů účtu příjemce.
 </div>
 <div class="box">
-  <strong>Minimální částka (Nastavení).</strong> V záložce <strong>Nastavení</strong> nastavíš minimální částku výdaje (výchozí 200 Kč, dá se změnit). Výdaje z výpisů pod ní se předvyplní jako vypnuté — malé položky, které nemá smysl rozúčtovávat. Zůstanou vidět a jedním klikem je zapneš. Pravidelných a povinných plateb se to netýká. Záložka <strong>Dokumentace</strong> shrnuje pravidla appky a vrstvy dokumentace.
+  <strong>Minimální částka (Nastavení).</strong> V záložce <strong>Nastavení</strong> nastavíš minimální částku výdaje (výchozí 200 Kč, dá se změnit). Výdaje z výpisů pod ní se předvyplní jako vypnuté — malé položky, které nemá smysl rozúčtovávat. Zůstanou vidět a jedním klikem je zapneš. Pravidelných a povinných plateb se to netýká.
+</div>
+<div class="box">
+  <strong>AI backend (Nastavení).</strong> V Nastavení taky vybereš, který AI model se použije pro kategorizaci: <em>Podle serveru</em> (výchozí), <em>Zdarma — Workers AI</em>, <em>Placené — Claude</em>, nebo <em>Vypnuto</em>. Volba se uloží v prohlížeči a projeví se při dalším Zpracovat i v indikátoru AI v hlavičce.
+</div>
+<div class="box">
+  <strong>Dokumentace — tisk a export.</strong> Záložka <strong>Dokumentace</strong> shrnuje pravidla appky a vrstvy dokumentace. Tlačítky <strong>Tisk</strong>, <strong>Export HTML</strong> a <strong>Export PDF</strong> ji vytiskneš nebo uložíš jako samostatný soubor (s verzí, časem a odkazem na appku).
 </div>
 
 <h2>4. AI kategorizace</h2>
 <p>Revolut u transakcí nemá kategorii ani poznámku. Zaškrtnuté políčko <strong>Použít AI kategorizaci</strong> nechá model doplnit kategorii, poznámku a vyčistit název obchodníka; věci, co se nerozúčtovávají (Netflix, převody sobě), navrhne vyřadit.</p>
-<p>Běží na <strong>Cloudflare Workers AI zdarma</strong> (výchozí — nic nenastavuješ a data zůstanou na Cloudflare). Když je nastavený placený Claude a dojde kredit, appka se sama přepne na free.</p>
+<p>Běží na <strong>Cloudflare Workers AI zdarma</strong> (výchozí — nic nenastavuješ a data zůstanou na Cloudflare). Když je nastavený placený Claude a dojde kredit, appka se sama přepne na free. Který backend se použije, přepneš v záložce <strong>Nastavení</strong>.</p>
 <p>Je to pomocník, ne autorita — všechno si můžeš přepsat. Když AI není dostupná, appka funguje dál a jen to napíše.</p>
 
 <h2>5. Když něco nesedí</h2>

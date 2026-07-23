@@ -326,15 +326,35 @@
             <input type="number" id="minAmount" min="0" step="1" value="200" style="max-width:160px" data-i18n-title="setMinTip">
           </div>
         </div>
-        <p class="hint" data-i18n="setMinHint"></p>
+        <p class="hint" data-i18n="setMinHint" style="margin:0 0 20px"></p>
+
+        <div class="row" style="margin-bottom:12px">
+          <div>
+            <label for="aiProvider" data-i18n="setAiLabel"></label>
+            <select id="aiProvider" style="max-width:340px" data-i18n-title="setAiTip">
+              <option value="" data-i18n="setAiAuto"></option>
+              <option value="workers-ai" data-i18n="setAiFree"></option>
+              <option value="anthropic" data-i18n="setAiPaid"></option>
+              <option value="off" data-i18n="setAiOff"></option>
+            </select>
+          </div>
+        </div>
+        <p class="hint" data-i18n="setAiHint"></p>
       </section>
     </div>
 
     <!-- ───────────── Dokumentace ───────────── -->
     <div class="page hidden" id="page-dokumentace">
       <section>
-        <h2 data-i18n="tabDocs">Dokumentace</h2>
-        <p class="hint" data-i18n="docsHelp" style="margin:0 0 14px"></p>
+        <div class="row" style="justify-content:space-between; align-items:baseline">
+          <h2 data-i18n="tabDocs" style="margin:0">Dokumentace</h2>
+          <div class="row" style="gap:8px">
+            <button id="docPrint" data-i18n-title="docPrintTip"><span data-i18n="docPrint"></span></button>
+            <button id="docHtml" data-i18n-title="docHtmlTip"><span data-i18n="docHtml"></span></button>
+            <button id="docPdf" data-i18n-title="docPdfTip"><span data-i18n="docPdf"></span></button>
+          </div>
+        </div>
+        <p class="hint" data-i18n="docsHelp" style="margin:8px 0 14px"></p>
         <div id="docsBox" class="help"></div>
       </section>
     </div>

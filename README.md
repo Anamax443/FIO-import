@@ -15,14 +15,14 @@
 Detailní zadání: [docs/SPEC.md](docs/SPEC.md). Uživatelský návod: [docs/navod.html](docs/navod.html).
 
 ## Stav
-Jádro **hotové a ověřené**: 105 testů (Vitest), typecheck čistý, celá pipeline proběhla živě
+Jádro **hotové a ověřené**: 108 testů (Vitest), typecheck čistý, celá pipeline proběhla živě
 od výpisu po platný soubor; appka je **nasazená na Cloudflare** (bass443). Zbývá ostrý běh
 na reálné měsíční dávce — viz [HANDOFF.md](HANDOFF.md).
 
 ## Stack
 - **Cloudflare Workers** (TypeScript, `nodejs_compat`) — API + statické UI v jednom Workeru
 - **D1** (SQLite) — ledger uplatněných nákladů, šablona pravidelných plateb, audit dávek (volitelná)
-- **AI kategorizace** Revolut řádků (volitelná, best-effort) — **přepínatelný backend**: Cloudflare Workers AI (Llama 3.1 8B, zdarma, nativní, výchozí) nebo Claude Haiku 4.5 (placený); řídí `AI_PROVIDER`, placený s automatickým fallbackem na free
+- **AI kategorizace** Revolut řádků (volitelná, best-effort) — **přepínatelný backend**: Cloudflare Workers AI (Llama 3.1 8B, zdarma, nativní, výchozí) nebo Claude Haiku 4.5 (placený); řídí `AI_PROVIDER`, placený s automatickým fallbackem na free. Backend jde přepnout i přímo v appce (záložka **Nastavení**, per požadavek)
 - **Vitest** — testy rizikového jádra (parsery, otisk, dedup, formát XML)
 
 ## Požadavky
@@ -33,7 +33,7 @@ na reálné měsíční dávce — viz [HANDOFF.md](HANDOFF.md).
 ## Spuštění / build
 ```
 npm install
-npm test            # 105 testů
+npm test            # 108 testů
 npm run typecheck
 npx wrangler dev --local --port 8788   # UI na http://127.0.0.1:8788
 ```
@@ -58,3 +58,6 @@ v produkci `wrangler secret put`. Do gitu nepatří ani reálné výpisy a vygen
 | Manažerská | [docs/project-status.html](docs/project-status.html) — stav, milníky, rizika |
 | Prezentační | [docs/prezentace.html](docs/prezentace.html) |
 | Deník | [HANDOFF.md](HANDOFF.md) |
+
+Dokumentaci lze i přímo v aplikaci (záložka **Dokumentace**) **vytisknout** nebo **exportovat
+do HTML / PDF** — samostatný soubor s metařádkem (verze, čas, URL). Zdroj pravdy zůstává repozitář.

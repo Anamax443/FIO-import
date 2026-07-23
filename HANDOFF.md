@@ -2,6 +2,38 @@
 
 Append-only. Nejnovější záznam nahoru. Slouží k pokračování z jiného počítače / po pauze.
 
+## 2026-07-23 — Dokumentace tisknutelná/exportovatelná + výběr AI modelu v Nastavení
+
+Dvě UI vylepšení bez zásahu do logiky pipeline:
+
+- **Dokumentace → Tisk / Export HTML / Export PDF.** Záložka Dokumentace dostala tlačítka
+  jako Přehled. Nový modul `public/doc.js` (`buildDocHtml(sekce, meta, labels)`) skládá
+  **samostatné, tisknutelné HTML** ze stejného zdroje jako in-app záložka (`t.docs`, CS+EN):
+  číslované sekce (CSS counter), metařádek (vygenerováno / verze / URL appky), patička,
+  světlý tiskový motiv + `@media print`. „PDF" = otevřít v okně a `window.print()` (uživatel
+  zvolí Uložit jako PDF). Bez knihoven, stejný vzor jako `report.js`.
+- **Nastavení → AI kategorizace — backend / model.** Select *Podle serveru (výchozí) /
+  Zdarma Workers AI / Placené Claude / Vypnuto* (localStorage `fio-aiProvider`). Klient
+  posílá volbu jako `aiProvider` v `/api/process` a `?provider=` v `/api/ai-check`; server
+  ji použije místo env `AI_PROVIDER`, ale pořád skrz `providerChain` (nedostupný backend se
+  ignoruje, free zůstává fallback — klient nemůže vynutit backend bez klíče/bindingu). Změna
+  selectu hned přesyncuje indikátor AI v hlavičce. **Bez re-deploye** = operativní přepínač,
+  env default zůstává jistotou pro nasazení.
+
+Dotčené: `public/doc.js` (nový), `public/index.html` (tlačítka Dokumentace + select Nastavení),
+`public/app.js` (`getAiProvider`, `setupDocsExport`, `syncAi` s `?provider`, `aiProvider` v
+process), `public/i18n.js` (nové klíče CS+EN + doplněné docs/tooltipy), `src/index.ts`
+(`aiProvider` v `/api/process`, `?provider=` v `/api/ai-check`). Sladěna dokumentace:
+README CS+EN, SPEC §9/§10, ARCHITECTURE (API, AI vrstva, nová sekce Exporty), BUILD §3,
+navod CS+EN, project-status, prezentace.
+
+**Ověřeno:** nový `test/doc.test.ts` (3 testy — validní tisknutelné HTML, escaping, bez URL);
+**108 testů** zelených (bylo 105), `tsc --noEmit` čistý, `node --check` na měněných ES modulech
+OK, a vizuální kontrola reálně vygenerovaného HTML dokumentace (6 sekcí, metadata sedí).
+Frontend nemá build step — `public/` servíruje Worker, takže se změny projeví až po deploy.
+
+**Nenasazeno** (čeká na explicitní „nasaď"). Živě pořád běží commit `2549dbf`.
+
 ## 2026-07-22 — Nastavení (minimální částka) + záložka Dokumentace
 
 Nové záložky **Nastavení** a **Dokumentace** (styl job-watch).

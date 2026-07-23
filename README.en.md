@@ -15,14 +15,14 @@
 Full specification (Czech): [docs/SPEC.md](docs/SPEC.md). User guide: [docs/navod.en.html](docs/navod.en.html).
 
 ## Status
-The core is **done and verified**: 105 tests (Vitest), clean typecheck, and the whole pipeline
+The core is **done and verified**: 108 tests (Vitest), clean typecheck, and the whole pipeline
 ran live from statement to a valid file; the app is **deployed on Cloudflare** (bass443).
 A first real monthly batch remains — see [HANDOFF.md](HANDOFF.md) (Czech).
 
 ## Stack
 - **Cloudflare Workers** (TypeScript, `nodejs_compat`) — API and static UI in one Worker
 - **D1** (SQLite) — claimed-cost ledger, recurring template, batch audit (optional)
-- **AI categorisation** of Revolut rows (optional, best-effort) — **switchable backend**: Cloudflare Workers AI (Llama 3.1 8B, free, native, default) or Claude Haiku 4.5 (paid); driven by `AI_PROVIDER`, paid with automatic fallback to free
+- **AI categorisation** of Revolut rows (optional, best-effort) — **switchable backend**: Cloudflare Workers AI (Llama 3.1 8B, free, native, default) or Claude Haiku 4.5 (paid); driven by `AI_PROVIDER`, paid with automatic fallback to free. The backend can also be switched from within the app (**Settings** tab, per request)
 - **Vitest** — tests for the risky core (parsers, fingerprint, dedup, XML format)
 
 ## Requirements
@@ -33,7 +33,7 @@ A first real monthly batch remains — see [HANDOFF.md](HANDOFF.md) (Czech).
 ## Run / build
 ```
 npm install
-npm test            # 105 tests
+npm test            # 108 tests
 npm run typecheck
 npx wrangler dev --local --port 8788   # UI at http://127.0.0.1:8788
 ```
@@ -58,6 +58,10 @@ in production use `wrangler secret put`. Real statements and generated XML files
 | Management | [docs/project-status.html](docs/project-status.html) — status, milestones, risks |
 | Pitch | [docs/prezentace.html](docs/prezentace.html) |
 | Journal | [HANDOFF.md](HANDOFF.md) |
+
+The documentation can also be **printed** or **exported to HTML / PDF** straight from the app
+(**Documentation** tab) — a self-contained file with a meta line (version, time, URL). The
+repository stays the source of truth.
 
 > The Czech documents are the source of truth; the English ones are translations of the
 > user-facing and overview layers.

@@ -55,11 +55,16 @@ Minulé XML ────────┘        └─ D1: šablona pravidelných
 
 | Metoda | Cesta | Vstup | Výstup |
 |--------|-------|-------|--------|
-| POST | `/api/process` | `{date, fio?, revolut?, historyCsv?, prevXml?, useAi?, useRecurring?, minAmount?}` | `{date, rows[], report, historySize, aiUsed, aiProvider, minAmount, belowMin}` |
+| POST | `/api/process` | `{date, fio?, revolut?, historyCsv?, prevXml?, useAi?, useRecurring?, minAmount?, aiProvider?}` | `{date, rows[], report, historySize, aiUsed, aiProvider, minAmount, belowMin}` |
 | POST | `/api/generate` | `{date, rows[]}` — generuje se jen z `include=true` | `.xml` + hlavičky `x-fio-count`, `x-fio-total` |
 | POST | `/api/ledger/import` | `{csv}` — pohyby účtu příjemce | `{imported}` |
 | GET | `/api/template` | — | `{template[]}` (šablona pravidelných plateb) |
+| GET | `/api/ai-check` | `?provider=` (volitelně; přebíjí env) | `{configured, ok?, provider, model?, reason?, fallback?}` — provider-aware indikátor AI |
 | GET | `/api/version` | — | `{commit}` — živý commit hash v patičce UI |
+
+`aiProvider` v `/api/process` a `?provider=` v `/api/ai-check` nese volbu AI backendu ze záložky
+**Nastavení** (klient, localStorage). Prázdné = env default (`AI_PROVIDER`). Dostupnost hlídá
+`providerChain` — klient nemůže vynutit backend, který není nakonfigurovaný (klíč/binding).
 
 ## Kritická pravidla formátu (v `xml.ts`, ověřeno na přijatém importu)
 
@@ -110,6 +115,29 @@ Prázdné `AI_PROVIDER` = auto (placený když je klíč, jinak free). **„Dle 
 `providerChain` staví pořadí placený → free, takže když placený backend spadne
 (kredit/billing/výpadek), `classify` se sama přepne na free. `/api/process` vrací
 `aiProvider` (který backend reálně běžel), `/api/ai-check` je provider-aware.
+
+**Volba z UI (Nastavení).** Backend jde přepnout i **per požadavek** ze záložky Nastavení
+(bez re-deploye): select „Podle serveru / Zdarma Workers AI / Placené Claude / Vypnuto"
+(localStorage `fio-aiProvider`). Klient posílá volbu jako `aiProvider` v `/api/process`
+a `?provider=` v `/api/ai-check`; server ji použije místo env `AI_PROVIDER`, ale pořád skrz
+`providerChain` (nedostupný backend se ignoruje, free zůstává fallback). Env default je
+jistota pro nasazení, UI volba je operativní přepínač.
+
+## Exporty a tisk (klient, bez knihoven)
+
+Reporty i dokumentace se skládají v prohlížeči z řetězců (žádná závislost, žádný server-side
+render). Sdílený vzor: samostatné HTML se světlým tiskovým motivem a `@media print`; „PDF" =
+otevřít v novém okně a `window.print()` (uživatel zvolí „Uložit jako PDF" nebo reálný tisk).
+
+| Modul (`public/`) | Co dělá |
+|-------------------|---------|
+| `report.js` | export **dávky** (záložka Přehled): CSV pro Excel (středník, BOM), samostatné HTML, PDF přes tisk; souhrny `summarize()` |
+| `doc.js` | export **dokumentace** (záložka Dokumentace): `buildDocHtml(sekce, meta, labels)` — číslované sekce (CSS counter), metařádek (vygenerováno / verze / URL appky), patička; Tisk / HTML / PDF |
+
+Obsah dokumentace jde z `t.docs` (i18n CS+EN) — stejný zdroj jako in-app záložka, takže tisk
+i obrazovka drží krok. Metadata (živý commit, čas serveru, `location.origin`) dělají výstup
+dohledatelný. Zdroj pravdy zůstává repozitář (`docs/`, `HANDOFF.md`); export je pohodlný
+snímek, ne náhrada.
 
 ## Datový model (D1) — viz [`schema.sql`](../schema.sql)
 

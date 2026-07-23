@@ -52,6 +52,8 @@ interface ProcessBody {
   useRecurring?: boolean;
   /** Minimální částka výdaje (Nastavení). Výdaje pod ní se předvyplní jako vypnuté. */
   minAmount?: number;
+  /** Výběr AI backendu z Nastavení: 'anthropic' | 'workers-ai' | 'off'; prázdné = env default. */
+  aiProvider?: string;
 }
 
 interface GenerateBody {
@@ -75,7 +77,10 @@ export default {
         return json({ commit: env.COMMIT_SHA ?? 'dev', time: new Date().toISOString(), aiConfigured: Boolean(env.ANTHROPIC_API_KEY) });
       }
       if (url.pathname === '/api/ai-check' && request.method === 'GET') {
-        const chain = providerChain({ provider: env.AI_PROVIDER, anthropicKey: env.ANTHROPIC_API_KEY, ai: env.AI });
+        // Volba z Nastavení (?provider=) přebíjí env default, ať indikátor sedí s tím, co poběží.
+        const providerParam = url.searchParams.get('provider');
+        const provider = providerParam && providerParam.trim() ? providerParam.trim() : env.AI_PROVIDER;
+        const chain = providerChain({ provider, anthropicKey: env.ANTHROPIC_API_KEY, ai: env.AI });
         if (chain.length === 0) return json({ configured: false, provider: null });
         const primary = chain[0];
         const fallback = chain[1] ?? null;
@@ -138,10 +143,14 @@ async function handleProcess(request: Request, env: Env): Promise<Response> {
   rows = rows.filter((r) => inRange(r.date_txn, body.dateFrom, body.dateTo));
   const outOfRange = beforeRange - rows.length;
 
-  // 2) AI vrstva (best-effort, neblokuje) — backend „dle úhrady": placený → free fallback
+  // 2) AI vrstva (best-effort, neblokuje) — backend „dle úhrady": placený → free fallback.
+  // Volba z Nastavení (body.aiProvider) přebíjí env default; providerChain hlídá dostupnost.
   let aiProvider: AiProvider | null = null;
   if (body.useAi !== false) {
-    const res = await classify(rows, { provider: env.AI_PROVIDER, anthropicKey: env.ANTHROPIC_API_KEY, ai: env.AI });
+    const provider = typeof body.aiProvider === 'string' && body.aiProvider.trim()
+      ? body.aiProvider.trim()
+      : env.AI_PROVIDER;
+    const res = await classify(rows, { provider, anthropicKey: env.ANTHROPIC_API_KEY, ai: env.AI });
     rows = res.rows;
     aiProvider = res.provider;
   }

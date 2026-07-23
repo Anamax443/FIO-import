@@ -102,12 +102,18 @@
   <strong>History learns by itself.</strong> After each generated batch the app records the sent rows, so next time it recognises them as already claimed. That is why loading the receiving account’s CSV movements matters the first time.
 </div>
 <div class="box">
-  <strong>Minimum amount (Settings).</strong> In the <strong>Settings</strong> tab you set the minimum expense amount (default 200 CZK, adjustable). Statement expenses below it are pre-set as off — small items not worth splitting. They stay visible and one click turns them on. Recurring and mandatory payments are not affected. The <strong>Documentation</strong> tab summarises the app’s rules and the documentation layers.
+  <strong>Minimum amount (Settings).</strong> In the <strong>Settings</strong> tab you set the minimum expense amount (default 200 CZK, adjustable). Statement expenses below it are pre-set as off — small items not worth splitting. They stay visible and one click turns them on. Recurring and mandatory payments are not affected.
+</div>
+<div class="box">
+  <strong>AI backend (Settings).</strong> In Settings you also pick which AI model is used for categorisation: <em>Server default</em>, <em>Free — Workers AI</em>, <em>Paid — Claude</em>, or <em>Off</em>. The choice is stored in the browser and takes effect on the next Process and in the AI indicator in the header.
+</div>
+<div class="box">
+  <strong>Documentation — print and export.</strong> The <strong>Documentation</strong> tab summarises the app’s rules and the documentation layers. The <strong>Print</strong>, <strong>Export HTML</strong> and <strong>Export PDF</strong> buttons print it or save it as a self-contained file (with version, time and a link to the app).
 </div>
 
 <h2>4. AI categorisation</h2>
 <p>Revolut transactions carry no category or note. With <strong>Use AI categorisation</strong> ticked, the model fills in a category, a note and a cleaned-up merchant name, and suggests excluding things that are not split (Netflix, transfers to self).</p>
-<p>It runs on <strong>Cloudflare Workers AI for free</strong> by default (nothing to set up, and the data stays on Cloudflare). If the paid Claude backend is configured and runs out of credit, the app falls back to the free one automatically.</p>
+<p>It runs on <strong>Cloudflare Workers AI for free</strong> by default (nothing to set up, and the data stays on Cloudflare). If the paid Claude backend is configured and runs out of credit, the app falls back to the free one automatically. You switch which backend is used in the <strong>Settings</strong> tab.</p>
 <p>It is an assistant, not an authority — you can overwrite everything. If the AI is unavailable, the app carries on and says so.</p>
 
 <h2>5. When something looks wrong</h2>
